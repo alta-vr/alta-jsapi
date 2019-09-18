@@ -12,17 +12,32 @@ import customLogger from './logger';
 
 var appdata = path.join(process.env.APPDATA || "./", 'Alta Launcher');
 
-const namedEndpoint = (name:String) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
+const publicBaseUrl = (name:String) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
 const localEndpoint = "http://localhost:13490/api/";
+
+function getEndpoint(name:String) 
+{
+    switch (name)
+    {
+        case 'dev':
+        case 'prod':
+        case 'test':
+        case 'latest':
+            return publicBaseUrl(name);
+        
+        case 'local':
+            return localEndpoint;
+    }
+}
 
 const DEV = 'dev';
 const PROD = 'prod';
 const TEST = 'test';
 const LATEST = 'latest';
+const LOCAL = 'local';
 
 //Change here
-const currentEndpoint = namedEndpoint(PROD);
-
+let currentEndpoint = getEndpoint(PROD);
 
 //Reject Unauthorized Setting
 let rejectUnauthorized = true;
@@ -42,6 +57,11 @@ if (process.env.APPDATA != undefined)
         rejectUnauthorized = !!settings.rejectUnauthorized;
         loggingLevel = settings.jsapiLoggingLevel;
         
+        if (!!settings.apiEndpoint) 
+        {
+            currentEndpoint = getEndpoint(settings.apiEndpoint);
+        }
+        
         console.log("rejectUnauthorized: " + rejectUnauthorized);
         console.log("jsapi logging level: " + loggingLevel)
     }
@@ -50,6 +70,8 @@ else
 {
     console.info("Couldn't find APPDATA to check rejectUnauthorized");
 }
+
+console.log("jsapi endpoint: " + currentEndpoint)
 
 const logger = customLogger('WEBAPI', loggingLevel);
 
