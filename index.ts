@@ -863,20 +863,11 @@ export const Servers =
         return request('GET', `servers/control`);
     },
 
-    joinConsole: (id:number|string, should_launch:boolean = false) =>
+    joinConsole: (id:number|string, should_launch:boolean = false, ignore_offline:boolean = false) =>
     {
         logger.info(`Join console ${id}`);
 
-        return request('POST', `servers/${id}/console`, false, { should_launch });
-
-        // Response:
-        // {
-        // "address":"127.0.0.1",
-        // "local_address":"127.0.0.1",
-        // "console_port": 1759,
-        // "logging_port": 1759,
-        // "websocket_port": 1759,
-        // }
+        return request('POST', `servers/${id}/console`, false, { should_launch, ignore_offline });
     }
 }
 
