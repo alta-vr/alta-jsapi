@@ -43,6 +43,8 @@ let currentEndpoint = getEndpoint(PROD);
 let rejectUnauthorized = true;
 let loggingLevel = 0;
 
+var refreshPromise:Promise<void>|undefined;
+
 export const getRejectUnauthorized = () => rejectUnauthorized;
 
 if (process.env.APPDATA != undefined)
@@ -195,10 +197,18 @@ function requestRefresh(method: string, path: string, isCached: boolean = false,
 
 function updateTokens()
 {
+    if (!!refreshPromise)
+    {
+        logger.info("Awaiting current refresh promise");
+        return refreshPromise;
+    }
+
     if (!accessToken || accessToken.exp - (new Date().getTime() / 1000) < 15)
     {
         logger.info("Requiring refresh");
-        return Sessions.refreshSession();
+        refreshPromise = Sessions.refreshSession().then(() => refreshPromise = undefined);
+
+        return refreshPromise;
     }
     else
     {
@@ -642,8 +652,7 @@ export const Groups =
             permissions
         });
     },
-
-    
+   
     createServer : (groupId:number|string, name:string, description:string, region:string) =>
     {
         logger.info(`Create server ${groupId} ${name}`);
@@ -746,7 +755,7 @@ export const Users =
         logger.info("Get verified");
 
         return request('GET', `users/${accessToken.UserId}/verification`)
-            .then(result =>
+            .then((result:boolean) =>
             {
                 if (result)
                 {
