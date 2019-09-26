@@ -12,21 +12,38 @@ import customLogger from './logger';
 
 var appdata = path.join(process.env.APPDATA || "./", 'Alta Launcher');
 
-const namedEndpoint = (name:String) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
+const publicBaseUrl = (name:String) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
 const localEndpoint = "http://localhost:13490/api/";
+
+function getEndpoint(name:String) 
+{
+    switch (name)
+    {
+        case 'dev':
+        case 'prod':
+        case 'test':
+        case 'latest':
+            return publicBaseUrl(name);
+        
+        case 'local':
+            return localEndpoint;
+    }
+}
 
 const DEV = 'dev';
 const PROD = 'prod';
 const TEST = 'test';
 const LATEST = 'latest';
+const LOCAL = 'local';
 
 //Change here
-const currentEndpoint = namedEndpoint(PROD);
-
+let currentEndpoint = getEndpoint(PROD);
 
 //Reject Unauthorized Setting
 let rejectUnauthorized = true;
 let loggingLevel = 0;
+
+var refreshPromise:Promise<void>|undefined;
 
 export const getRejectUnauthorized = () => rejectUnauthorized;
 
@@ -42,6 +59,11 @@ if (process.env.APPDATA != undefined)
         rejectUnauthorized = !!settings.rejectUnauthorized;
         loggingLevel = settings.jsapiLoggingLevel;
         
+        if (!!settings.apiEndpoint) 
+        {
+            currentEndpoint = getEndpoint(settings.apiEndpoint);
+        }
+        
         console.log("rejectUnauthorized: " + rejectUnauthorized);
         console.log("jsapi logging level: " + loggingLevel)
     }
@@ -50,6 +72,8 @@ else
 {
     console.info("Couldn't find APPDATA to check rejectUnauthorized");
 }
+
+console.log("jsapi endpoint: " + currentEndpoint)
 
 const logger = customLogger('WEBAPI', loggingLevel);
 
@@ -173,10 +197,18 @@ function requestRefresh(method: string, path: string, isCached: boolean = false,
 
 function updateTokens()
 {
+    if (!!refreshPromise)
+    {
+        logger.info("Awaiting current refresh promise");
+        return refreshPromise;
+    }
+
     if (!accessToken || accessToken.exp - (new Date().getTime() / 1000) < 15)
     {
         logger.info("Requiring refresh");
-        return Sessions.refreshSession();
+        refreshPromise = Sessions.refreshSession().then(() => refreshPromise = undefined);
+
+        return refreshPromise;
     }
     else
     {
@@ -620,8 +652,7 @@ export const Groups =
             permissions
         });
     },
-
-    
+   
     createServer : (groupId:number|string, name:string, description:string, region:string) =>
     {
         logger.info(`Create server ${groupId} ${name}`);
@@ -724,7 +755,7 @@ export const Users =
         logger.info("Get verified");
 
         return request('GET', `users/${accessToken.UserId}/verification`)
-            .then(result =>
+            .then((result:boolean) =>
             {
                 if (result)
                 {
@@ -841,25 +872,11 @@ export const Servers =
         return request('GET', `servers/control`);
     },
 
-    joinConsole: (id:number|string, should_launch:boolean = false) =>
+    joinConsole: (id:number|string, should_launch:boolean = false, ignore_offline:boolean = false) =>
     {
         logger.info(`Join console ${id}`);
 
-        return request('POST', `servers/${id}/console`, false, { should_launch });
-
-        // {
-        //      allowed: true,
-        //      could_start: false,
-        //      fail_reason: "Nothing",
-        //      was_rejection: false,
-        //      connection:
-        // {
-        // "address":"127.0.0.1",
-        // "local_address":"127.0.0.1",
-        // "console_port": 1759,
-        // "logging_port": 1759,
-        // "websocket_port": 1759,
-        // }
+        return request('POST', `servers/${id}/console`, false, { should_launch, ignore_offline });
     }
 }
 
