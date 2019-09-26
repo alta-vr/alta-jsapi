@@ -847,7 +847,12 @@ export const Servers =
 
         return request('POST', `servers/${id}/console`, false, { should_launch });
 
-        // Response:
+        // {
+        //      allowed: true,
+        //      could_start: false,
+        //      fail_reason: "Nothing",
+        //      was_rejection: false,
+        //      connection:
         // {
         // "address":"127.0.0.1",
         // "local_address":"127.0.0.1",
