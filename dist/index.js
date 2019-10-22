@@ -61,17 +61,30 @@ var memoizee_1 = __importDefault(require("memoizee"));
 var sha512_1 = __importDefault(require("crypto-js/sha512"));
 var logger_1 = __importDefault(require("./logger"));
 var appdata = path_1.default.join(process.env.APPDATA || "./", 'Alta Launcher');
-var namedEndpoint = function (name) { return "https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/" + name + "/api/"; };
+var publicBaseUrl = function (name) { return "https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/" + name + "/api/"; };
 var localEndpoint = "http://localhost:13490/api/";
+function getEndpoint(name) {
+    switch (name) {
+        case 'dev':
+        case 'prod':
+        case 'test':
+        case 'latest':
+            return publicBaseUrl(name);
+        case 'local':
+            return localEndpoint;
+    }
+}
 var DEV = 'dev';
 var PROD = 'prod';
 var TEST = 'test';
 var LATEST = 'latest';
+var LOCAL = 'local';
 //Change here
-var currentEndpoint = namedEndpoint(PROD);
+var currentEndpoint = getEndpoint(PROD);
 //Reject Unauthorized Setting
 var rejectUnauthorized = true;
 var loggingLevel = 0;
+var refreshPromise;
 exports.getRejectUnauthorized = function () { return rejectUnauthorized; };
 if (process.env.APPDATA != undefined) {
     var settingsFile = path_1.default.join(process.env.APPDATA, 'Alta Launcher', 'Settings.json');
@@ -80,6 +93,9 @@ if (process.env.APPDATA != undefined) {
         var settings = JSON.parse(fs_1.default.readFileSync(settingsFile, "utf8"));
         rejectUnauthorized = !!settings.rejectUnauthorized;
         loggingLevel = settings.jsapiLoggingLevel;
+        if (!!settings.apiEndpoint) {
+            currentEndpoint = getEndpoint(settings.apiEndpoint);
+        }
         console.log("rejectUnauthorized: " + rejectUnauthorized);
         console.log("jsapi logging level: " + loggingLevel);
     }
@@ -87,6 +103,7 @@ if (process.env.APPDATA != undefined) {
 else {
     console.info("Couldn't find APPDATA to check rejectUnauthorized");
 }
+console.log("jsapi endpoint: " + currentEndpoint);
 var logger = logger_1.default('WEBAPI', loggingLevel);
 var isOffline = false;
 var accessToken;
@@ -106,6 +123,10 @@ function setVersion(version) {
     headers['User-Agent'] = 'Launcher/' + version;
 }
 exports.setVersion = setVersion;
+function setUserAgent(userAgent) {
+    headers['User-Agent'] = userAgent;
+}
+exports.setUserAgent = setUserAgent;
 function requestNoLogin(method, path, isCached, body) {
     if (isCached === void 0) { isCached = false; }
     if (body === void 0) { body = undefined; }
@@ -195,14 +216,19 @@ function requestRefresh(method, path, isCached, body) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    headers = __assign({}, headers, { Authorization: "Bearer " + refreshString });
+    headers = __assign(__assign({}, headers), { Authorization: "Bearer " + refreshString });
     return request_promise_native_1.default({ url: currentEndpoint + path, method: method, headers: headers, body: JSON.stringify(body), rejectUnauthorized: rejectUnauthorized })
         .then(function (response) { return JSON.parse(response); });
 }
 function updateTokens() {
+    if (!!refreshPromise) {
+        logger.info("Awaiting current refresh promise");
+        return refreshPromise;
+    }
     if (!accessToken || accessToken.exp - (new Date().getTime() / 1000) < 15) {
         logger.info("Requiring refresh");
-        return exports.Sessions.refreshSession();
+        refreshPromise = exports.Sessions.refreshSession().then(function () { return refreshPromise = undefined; });
+        return refreshPromise;
     }
     else {
         logger.info("Access token valid");
@@ -600,6 +626,18 @@ exports.Servers = {
         logger.info("Getting visible servers");
         return request('GET', 'servers/online');
     },
+    getPublic: function () {
+        logger.info("Getting public servers");
+        return request('GET', 'servers/public');
+    },
+    getJoined: function () {
+        logger.info("Getting joined servers");
+        return request('GET', 'servers/joined');
+    },
+    getOpen: function () {
+        logger.info("Getting open servers");
+        return request('GET', 'servers/open');
+    },
     getDetails: function (serverId) {
         logger.info("Getting server details " + serverId);
         return request('GET', "servers/" + serverId);
@@ -608,18 +646,11 @@ exports.Servers = {
         logger.info("Getting controllable");
         return request('GET', "servers/control");
     },
-    joinConsole: function (id, should_launch) {
+    joinConsole: function (id, should_launch, ignore_offline) {
         if (should_launch === void 0) { should_launch = false; }
+        if (ignore_offline === void 0) { ignore_offline = false; }
         logger.info("Join console " + id);
-        return request('POST', "servers/" + id + "/console", false, { should_launch: should_launch });
-        // Response:
-        // {
-        // "address":"127.0.0.1",
-        // "local_address":"127.0.0.1",
-        // "console_port": 1759,
-        // "logging_port": 1759,
-        // "websocket_port": 1759,
-        // }
+        return request('POST', "servers/" + id + "/console", false, { should_launch: should_launch, ignore_offline: ignore_offline });
     }
 };
 exports.Services = {
