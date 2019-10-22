@@ -108,6 +108,11 @@ export function setVersion(version:string)
     headers['User-Agent'] = 'Launcher/' + version;
 }
 
+export function setUserAgent(userAgent:string)
+{
+    headers['User-Agent'] = userAgent;
+}
+
 function requestNoLogin(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
 {
     logger.info("NO LOGIN: " + method + " " + path);
@@ -856,6 +861,27 @@ export const Servers =
         logger.info("Getting visible servers");
 
         return request('GET', 'servers/online');
+    },
+
+    getPublic: () =>
+    {
+        logger.info("Getting public servers");
+
+        return request('GET', 'servers/public');
+    },
+
+    getJoined: () =>
+    {
+        logger.info("Getting joined servers");
+
+        return request('GET', 'servers/joined');
+    },
+
+    getOpen: () =>
+    {
+        logger.info("Getting open servers");
+
+        return request('GET', 'servers/open');
     },
 
     getDetails: (serverId:number|string) =>
