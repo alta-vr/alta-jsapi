@@ -596,7 +596,11 @@ exports.Users = {
     findUserByUsername: function (username) {
         logger.info("Find user with username " + username);
         return request('POST', "users/search/username", false, { username: username });
-    }
+    },
+    getStatistics: function (userId) {
+        logger.info("Getting Users statistics id: " + userId);
+        return request('GET', "users/" + userId + "/statistics");
+    },
 };
 exports.Meta = {
 //No applicable methods

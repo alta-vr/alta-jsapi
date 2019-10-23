@@ -92,6 +92,7 @@ export declare const Users: {
     resetPassword: (userId: number, newHash: string, token: string) => Promise<any>;
     changeUsername: (username: string) => Promise<any>;
     findUserByUsername: (username: string) => Promise<any>;
+    getStatistics: (userId: Number) => Promise<any>;
 };
 export declare const Meta: {};
 export declare const Servers: {
