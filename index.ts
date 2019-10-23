@@ -811,7 +811,14 @@ export const Users =
         logger.info("Find user with username " + username);
 
         return request('POST', `users/search/username`, false, { username });
-    }
+    },
+    
+    getStatistics : (userId : Number) =>
+    {
+        logger.info("Getting Users statistics id: " + userId);
+
+        return request('GET', `users/${userId}/statistics`);
+    },
 }
 
 export const Meta =
