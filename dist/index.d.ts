@@ -1,4 +1,5 @@
 import memoizee from 'memoizee';
+export declare const setEndpoint: (endpoint: string) => void;
 export declare const getRejectUnauthorized: () => boolean;
 declare type Tokens = {
     refresh_token: string;
@@ -8,7 +9,7 @@ declare type Tokens = {
 export declare function setVersion(version: string): void;
 export declare function setUserAgent(userAgent: string): void;
 export declare const Sessions: {
-    ensureLoggedIn: () => Promise<unknown>;
+    ensureLoggedIn: () => Promise<{}>;
     getUserId: () => any;
     getVerified: () => any;
     getUsername: () => any;
@@ -36,6 +37,11 @@ export declare const Launcher: {
     getGames: () => Promise<any>;
     getGameInfo: (gameId: number) => Promise<any>;
 };
+export declare enum GroupType {
+    Open = 0,
+    Public = 1,
+    Private = 2
+}
 export declare const Groups: {
     Member: number;
     Moderator: number;
@@ -45,19 +51,28 @@ export declare const Groups: {
     Open: number;
     Public: number;
     Private: number;
-    getJoined: () => AsyncGenerator<any, void, unknown>;
-    getVisible: () => AsyncGenerator<any, void, unknown>;
-    getInvited: () => AsyncGenerator<any, void, unknown>;
-    getRequested: () => AsyncGenerator<any, void, unknown>;
+    getJoined: () => AsyncIterableIterator<any>;
+    getVisible: (type: GroupType) => AsyncIterableIterator<any>;
+    getInvited: () => AsyncIterableIterator<any>;
+    getRequested: () => AsyncIterableIterator<any>;
     createGroup: (name: string, description: string) => Promise<any>;
     getGroupInfo: (groupId: string | number) => Promise<any>;
-    getMembers: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    getBans: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    editGroupInfo: (groupId: string | number, groupInfo: {
+        name: string | undefined;
+        description: string | undefined;
+        groupType: GroupType | undefined;
+    }) => Promise<any>;
+    editGroupRole: (groupId: string | number, roleId: string | number, newInfo: {
+        name: string | undefined;
+        permissions: string[] | undefined;
+    }) => Promise<any>;
+    getMembers: (groupId: string | number) => AsyncIterableIterator<any>;
+    getBans: (groupId: string | number) => AsyncIterableIterator<any>;
     banUser: (groupId: string | number, userId: string | number) => Promise<any>;
     unbanUser: (groupId: string | number, userId: string | number) => Promise<any>;
     getMemberInfo: (groupId: string | number, userId: string | number) => Promise<any>;
-    getJoinRequests: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    getOutgoingInvites: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    getJoinRequests: (groupId: string | number) => AsyncIterableIterator<any>;
+    getOutgoingInvites: (groupId: string | number) => AsyncIterableIterator<any>;
     requestJoin: (groupId: string | number) => Promise<any>;
     revokeRequest: (groupId: string | number) => Promise<any>;
     acceptInvite: (groupId: string | number) => Promise<any>;
@@ -69,13 +84,14 @@ export declare const Groups: {
     rejectRequest: (groupId: string | number, userId: string | number) => Promise<any>;
     kickMember: (groupId: string | number, userId: string | number) => Promise<any>;
     editPermissions: (groupId: string | number, userId: string | number, permissions: number) => Promise<any>;
+    setMemberRole: (groupId: string | number, userId: string | number, roleId: string | number) => Promise<any>;
     createServer: (groupId: string | number, name: string, description: string, region: string) => Promise<any>;
 };
 export declare const Friends: {
-    getUserFriends: (userId: string | number) => AsyncGenerator<any, void, unknown>;
-    getFriends: () => AsyncGenerator<any, void, unknown>;
-    getOutgoingRequests: () => AsyncGenerator<any, void, unknown>;
-    getFriendRequests: () => AsyncGenerator<any, void, unknown>;
+    getUserFriends: (userId: string | number) => AsyncIterableIterator<any>;
+    getFriends: () => AsyncIterableIterator<any>;
+    getOutgoingRequests: () => AsyncIterableIterator<any>;
+    getFriendRequests: () => AsyncIterableIterator<any>;
     acceptFriendRequest: (userId: string | number) => Promise<any>;
     addFriend: (userId: string | number) => Promise<any>;
     revokeFriendRequest: (userId: string | number) => Promise<any>;
