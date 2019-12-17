@@ -45,6 +45,11 @@ let loggingLevel = 0;
 
 var refreshPromise:Promise<void>|undefined;
 
+export const setEndpoint = (endpoint:string) =>
+{
+    currentEndpoint = getEndpoint(endpoint);
+};
+
 export const getRejectUnauthorized = () => rejectUnauthorized;
 
 if (process.env.APPDATA != undefined)
@@ -61,7 +66,7 @@ if (process.env.APPDATA != undefined)
         
         if (!!settings.apiEndpoint) 
         {
-            currentEndpoint = getEndpoint(settings.apiEndpoint);
+            setEndpoint(settings.apiEndpoint);
         }
         
         console.log("rejectUnauthorized: " + rejectUnauthorized);
@@ -241,7 +246,7 @@ export const Sessions =
     getUserId: () => (!!accessToken && accessToken.UserId),
     getVerified: () => (!!accessToken && (accessToken.is_verified || accessToken.is_verified === "True")),
     getUsername: () => (!!accessToken && accessToken.Username),
-    getMember: () => (!!accessToken && (accessToken.is_member || accessToken.is_member === "True")),
+    getMember: () => Sessions.getPolicy('member'),
     getPolicy: (policy: string) => (!!accessToken && accessToken.Policy.some((item: string) => item === policy)),
 
     connectToCookies(providedCookies: any)
@@ -460,6 +465,13 @@ export const Launcher =
     },
 }
 
+export enum GroupType
+{
+    Open,
+    Public,
+    Private
+}
+
 export const Groups =
 {
     Member : 1,
@@ -485,11 +497,11 @@ export const Groups =
         return requestPaged('GET', 'groups/joined');
     },
     
-    getVisible : () =>
+    getVisible : (type:GroupType) =>
     {
         logger.info("Get visible groups");
 
-        return requestPaged('GET', 'groups');
+        return requestPaged('GET', `groups?type=${type}`);
     },
     
     getInvited : () =>
@@ -527,6 +539,20 @@ export const Groups =
         logger.info(`Get group info ${groupId}`);
 
         return request('GET', `groups/${groupId}`);
+    },
+
+    editGroupInfo : (groupId:number|string, groupInfo:{name:string|undefined, description:string|undefined, groupType:GroupType|undefined}) =>
+    {
+        logger.info(`Patch group info ${groupId}`);
+
+        return request('PATCH', `groups/${groupId}`, false, groupInfo);
+    },
+
+    editGroupRole : (groupId:number|string, roleId:number|string, newInfo:{name:string|undefined, permissions:string[]|undefined}) =>
+    {
+        logger.info(`Put group role ${groupId} ${roleId}`);
+
+        return request('PUT', `groups/${groupId}/roles/${roleId}`, false, newInfo);
     },
     
     getMembers : (groupId:number|string) =>
@@ -648,6 +674,7 @@ export const Groups =
         return request('DELETE', `groups/${groupId}/members/${userId}`);
     },
     
+    //OBSOLETE
     editPermissions : (groupId:number|string, userId:number|string, permissions:number) =>
     {
         logger.info(`Edit member permissions ${groupId} ${userId}`);
@@ -656,6 +683,13 @@ export const Groups =
         {
             permissions
         });
+    },
+
+    setMemberRole : (groupId:number|string, userId:number|string, roleId:number|string) =>
+    {
+        logger.info(`Edit member role ${groupId} ${userId} ${roleId}`);
+
+        return request('POST', `groups/${groupId}/members/${userId}/role/${roleId})`);
     },
    
     createServer : (groupId:number|string, name:string, description:string, region:string) =>
