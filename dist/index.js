@@ -82,7 +82,7 @@ let headers = {
     "Content-Type": "application/json",
     'x-api-key': '2l6aQGoNes8EHb94qMhqQ5m2iaiOM9666oDTPORf',
     'Authorization': '',
-    'User-Agent': 'Launcher'
+    'User-Agent': 'Unknown'
 };
 function setVersion(version) {
     headers['User-Agent'] = 'Launcher/' + version;
@@ -456,7 +456,7 @@ exports.Groups = {
     },
     setMemberRole: (groupId, userId, roleId) => {
         logger.info(`Edit member role ${groupId} ${userId} ${roleId}`);
-        return request('POST', `groups/${groupId}/members/${userId}/role/${roleId})`);
+        return request('POST', `groups/${groupId}/members/${userId}/role/${roleId}`);
     },
     createServer: (groupId, name, description, region) => {
         logger.info(`Create server ${groupId} ${name}`);
