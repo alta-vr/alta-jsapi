@@ -48,6 +48,7 @@ let rejectUnauthorized = true;
 let loggingLevel = 0;
 var refreshPromise;
 exports.setEndpoint = (endpoint) => {
+    console.log("SETTING ENDPOINT TO " + endpoint);
     currentEndpoint = getEndpoint(endpoint);
 };
 exports.getRejectUnauthorized = () => rejectUnauthorized;
@@ -125,7 +126,9 @@ function requestPaged(method, path, limit = undefined, isCached = false, body = 
         var lastToken = undefined;
         while (true) {
             try {
-                var response = yield __await(request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized, resolveWithFullResponse: true, qs: { paginationToken: lastToken, limit } }));
+                var jsonBody = JSON.stringify(body);
+                console.log(jsonBody);
+                var response = yield __await(request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: jsonBody, rejectUnauthorized, resolveWithFullResponse: true, qs: { paginationToken: lastToken, limit } }));
             }
             catch (error) {
                 console.error("Error in pagination");
@@ -150,7 +153,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
+    headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
 }
@@ -562,6 +565,10 @@ exports.Servers = {
         logger.info("Get regions");
         return requestNoLogin('GET', `servers/regions`);
     },
+    getConsoleServers: () => {
+        logger.info("Getting console servers");
+        return request('GET', 'servers/console');
+    },
     getFavorites: () => {
         logger.info("Getting favorite servers");
         return request('GET', 'servers/favorites');
@@ -615,6 +622,40 @@ exports.Services = {
     getTemporaryIdentity: (data) => {
         logger.info("Get temp ID");
         return request('POST', 'services/identity-token', false, { user_data: data });
+    }
+};
+var UserReportStatus;
+(function (UserReportStatus) {
+    UserReportStatus[UserReportStatus["Unprocessed"] = 1] = "Unprocessed";
+    UserReportStatus[UserReportStatus["AwaitingReply"] = 2] = "AwaitingReply";
+    UserReportStatus[UserReportStatus["Resolved"] = 4] = "Resolved";
+    UserReportStatus[UserReportStatus["Rejected"] = 8] = "Rejected";
+})(UserReportStatus = exports.UserReportStatus || (exports.UserReportStatus = {}));
+var UserReportType;
+(function (UserReportType) {
+    UserReportType[UserReportType["UserReport"] = 0] = "UserReport";
+    UserReportType[UserReportType["LostItems"] = 1] = "LostItems";
+    UserReportType[UserReportType["TempBan"] = 2] = "TempBan";
+    UserReportType[UserReportType["PermaBan"] = 3] = "PermaBan";
+    UserReportType[UserReportType["Warning"] = 4] = "Warning";
+    UserReportType[UserReportType["Note"] = 5] = "Note";
+})(UserReportType = exports.UserReportType || (exports.UserReportType = {}));
+exports.UserReports = {
+    getUserReports: (status, user_ids = undefined) => {
+        logger.info("Get user reports");
+        return requestPaged('GET', `userReports?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    getTopicReports: (status, user_ids = undefined) => {
+        logger.info("Get topic reports");
+        return requestPaged('GET', `userReports/topic?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    getAssigneeReports: (status, user_ids = undefined) => {
+        logger.info("Get assignee reports");
+        return requestPaged('GET', `userReports/assignee?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    submitReport: (report) => {
+        logger.info("Submit report");
+        return request('POST', 'userReports', false, report);
     }
 };
 exports.Shop = {

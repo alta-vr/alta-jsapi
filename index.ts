@@ -47,6 +47,7 @@ var refreshPromise:Promise<void>|undefined;
 
 export const setEndpoint = (endpoint:string) =>
 {
+    console.log("SETTING ENDPOINT TO " + endpoint);
     currentEndpoint = getEndpoint(endpoint);
 };
 
@@ -163,7 +164,10 @@ async function * requestPaged(method: string, path: string, limit:number|undefin
     {
         try
         {
-            var response:any = await rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
+            var jsonBody = JSON.stringify(body);
+            console.log(jsonBody);
+            
+            var response:any = await rp({url: currentEndpoint + path, method, headers, body:jsonBody, rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
         }
         catch (error)
         {
@@ -869,6 +873,13 @@ export const Servers =
         return requestNoLogin('GET', `servers/regions`);
     },
 
+    getConsoleServers: () =>
+    {
+        logger.info("Getting console servers");
+
+        return request('GET', 'servers/console');
+    },
+
     getFavorites: () =>
     {
         logger.info("Getting favorite servers");
@@ -961,6 +972,67 @@ export const Services =
         logger.info("Get temp ID");
 
         return request('POST', 'services/identity-token', false, { user_data: data });
+    }
+}
+
+export enum UserReportStatus
+{
+    Unprocessed = 1 << 0,
+    AwaitingReply = 1 << 1,
+    Resolved = 1 << 2,
+    Rejected = 1 << 3
+}
+
+export enum UserReportType
+{
+    UserReport,
+    LostItems,
+    TempBan,
+    PermaBan,
+    Warning,
+    Note
+}
+
+export type UserReport =
+{
+    topic_user : number;
+    assignee : number;
+    incident_date:Date;
+    type:UserReportType;
+    status:UserReportStatus;
+    linked_reports:{name:string, report_id:number}[];
+    title:string;
+    comments:{user_id:number, comment:string, timestamp: Date};
+}
+
+export const UserReports =
+{
+    getUserReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get user reports");
+        
+        return requestPaged('GET', `userReports?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    
+    getTopicReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get topic reports");
+        
+        return requestPaged('GET', `userReports/topic?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    
+    getAssigneeReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get assignee reports");
+        
+        return requestPaged('GET', `userReports/assignee?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+
+    submitReport: ( report:UserReport ) =>
+    {
+        logger.info("Submit report");
+
+        return request('POST', 'userReports', false, report);
     }
 }
 
