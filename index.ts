@@ -45,6 +45,12 @@ let loggingLevel = 0;
 
 var refreshPromise:Promise<void>|undefined;
 
+export const setEndpoint = (endpoint:string) =>
+{
+    console.log("SETTING ENDPOINT TO " + endpoint);
+    currentEndpoint = getEndpoint(endpoint);
+};
+
 export const getRejectUnauthorized = () => rejectUnauthorized;
 
 if (process.env.APPDATA != undefined)
@@ -61,7 +67,7 @@ if (process.env.APPDATA != undefined)
         
         if (!!settings.apiEndpoint) 
         {
-            currentEndpoint = getEndpoint(settings.apiEndpoint);
+            setEndpoint(settings.apiEndpoint);
         }
         
         console.log("rejectUnauthorized: " + rejectUnauthorized);
@@ -100,12 +106,17 @@ let headers =
     "Content-Type": "application/json",
     'x-api-key': '2l6aQGoNes8EHb94qMhqQ5m2iaiOM9666oDTPORf',
     'Authorization': '',
-    'User-Agent': 'Launcher'
+    'User-Agent': 'Unknown'
 };
 
 export function setVersion(version:string)
 {
     headers['User-Agent'] = 'Launcher/' + version;
+}
+
+export function setUserAgent(userAgent:string)
+{
+    headers['User-Agent'] = userAgent;
 }
 
 function requestNoLogin(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
@@ -153,7 +164,10 @@ async function * requestPaged(method: string, path: string, limit:number|undefin
     {
         try
         {
-            var response:any = await rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
+            var jsonBody = JSON.stringify(body);
+            console.log(jsonBody);
+            
+            var response:any = await rp({url: currentEndpoint + path, method, headers, body:jsonBody, rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
         }
         catch (error)
         {
@@ -236,7 +250,7 @@ export const Sessions =
     getUserId: () => (!!accessToken && accessToken.UserId),
     getVerified: () => (!!accessToken && (accessToken.is_verified || accessToken.is_verified === "True")),
     getUsername: () => (!!accessToken && accessToken.Username),
-    getMember: () => (!!accessToken && (accessToken.is_member || accessToken.is_member === "True")),
+    getMember: () => Sessions.getPolicy('member'),
     getPolicy: (policy: string) => (!!accessToken && accessToken.Policy.some((item: string) => item === policy)),
 
     connectToCookies(providedCookies: any)
@@ -455,6 +469,13 @@ export const Launcher =
     },
 }
 
+export enum GroupType
+{
+    Open,
+    Public,
+    Private
+}
+
 export const Groups =
 {
     Member : 1,
@@ -480,11 +501,11 @@ export const Groups =
         return requestPaged('GET', 'groups/joined');
     },
     
-    getVisible : () =>
+    getVisible : (type:GroupType) =>
     {
         logger.info("Get visible groups");
 
-        return requestPaged('GET', 'groups');
+        return requestPaged('GET', `groups?type=${type}`);
     },
     
     getInvited : () =>
@@ -522,6 +543,20 @@ export const Groups =
         logger.info(`Get group info ${groupId}`);
 
         return request('GET', `groups/${groupId}`);
+    },
+
+    editGroupInfo : (groupId:number|string, groupInfo:{name:string|undefined, description:string|undefined, groupType:GroupType|undefined}) =>
+    {
+        logger.info(`Patch group info ${groupId}`);
+
+        return request('PATCH', `groups/${groupId}`, false, groupInfo);
+    },
+
+    editGroupRole : (groupId:number|string, roleId:number|string, newInfo:{name:string|undefined, permissions:string[]|undefined}) =>
+    {
+        logger.info(`Put group role ${groupId} ${roleId}`);
+
+        return request('PUT', `groups/${groupId}/roles/${roleId}`, false, newInfo);
     },
     
     getMembers : (groupId:number|string) =>
@@ -643,6 +678,7 @@ export const Groups =
         return request('DELETE', `groups/${groupId}/members/${userId}`);
     },
     
+    //OBSOLETE
     editPermissions : (groupId:number|string, userId:number|string, permissions:number) =>
     {
         logger.info(`Edit member permissions ${groupId} ${userId}`);
@@ -651,6 +687,13 @@ export const Groups =
         {
             permissions
         });
+    },
+
+    setMemberRole : (groupId:number|string, userId:number|string, roleId:number|string) =>
+    {
+        logger.info(`Edit member role ${groupId} ${userId} ${roleId}`);
+
+        return request('POST', `groups/${groupId}/members/${userId}/role/${roleId}`);
     },
    
     createServer : (groupId:number|string, name:string, description:string, region:string) =>
@@ -806,7 +849,14 @@ export const Users =
         logger.info("Find user with username " + username);
 
         return request('POST', `users/search/username`, false, { username });
-    }
+    },
+    
+    getStatistics : (userId : Number) =>
+    {
+        logger.info("Getting Users statistics id: " + userId);
+
+        return request('GET', `users/${userId}/statistics`);
+    },
 }
 
 export const Meta =
@@ -821,6 +871,13 @@ export const Servers =
         logger.info("Get regions");
 
         return requestNoLogin('GET', `servers/regions`);
+    },
+
+    getConsoleServers: () =>
+    {
+        logger.info("Getting console servers");
+
+        return request('GET', 'servers/console');
     },
 
     getFavorites: () =>
@@ -856,6 +913,27 @@ export const Servers =
         logger.info("Getting visible servers");
 
         return request('GET', 'servers/online');
+    },
+
+    getPublic: () =>
+    {
+        logger.info("Getting public servers");
+
+        return request('GET', 'servers/public');
+    },
+
+    getJoined: () =>
+    {
+        logger.info("Getting joined servers");
+
+        return request('GET', 'servers/joined');
+    },
+
+    getOpen: () =>
+    {
+        logger.info("Getting open servers");
+
+        return request('GET', 'servers/open');
     },
 
     getDetails: (serverId:number|string) =>
@@ -894,6 +972,67 @@ export const Services =
         logger.info("Get temp ID");
 
         return request('POST', 'services/identity-token', false, { user_data: data });
+    }
+}
+
+export enum UserReportStatus
+{
+    Unprocessed = 1 << 0,
+    AwaitingReply = 1 << 1,
+    Resolved = 1 << 2,
+    Rejected = 1 << 3
+}
+
+export enum UserReportType
+{
+    UserReport,
+    LostItems,
+    TempBan,
+    PermaBan,
+    Warning,
+    Note
+}
+
+export type UserReport =
+{
+    topic_user : number;
+    assignee : number;
+    incident_date:Date;
+    type:UserReportType;
+    status:UserReportStatus;
+    linked_reports:{name:string, report_id:number}[];
+    title:string;
+    comments:{user_id:number, comment:string, timestamp: Date};
+}
+
+export const UserReports =
+{
+    getUserReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get user reports");
+        
+        return requestPaged('GET', `userReports?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    
+    getTopicReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get topic reports");
+        
+        return requestPaged('GET', `userReports/topic?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+    
+    getAssigneeReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+    {
+        logger.info("Get assignee reports");
+        
+        return requestPaged('GET', `userReports/assignee?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+    },
+
+    submitReport: ( report:UserReport ) =>
+    {
+        logger.info("Submit report");
+
+        return request('POST', 'userReports', false, report);
     }
 }
 

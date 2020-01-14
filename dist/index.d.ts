@@ -1,4 +1,5 @@
 import memoizee from 'memoizee';
+export declare const setEndpoint: (endpoint: string) => void;
 export declare const getRejectUnauthorized: () => boolean;
 declare type Tokens = {
     refresh_token: string;
@@ -6,8 +7,9 @@ declare type Tokens = {
     identity_token: string;
 };
 export declare function setVersion(version: string): void;
+export declare function setUserAgent(userAgent: string): void;
 export declare const Sessions: {
-    ensureLoggedIn: () => Promise<{}>;
+    ensureLoggedIn: () => Promise<unknown>;
     getUserId: () => any;
     getVerified: () => any;
     getUsername: () => any;
@@ -35,6 +37,11 @@ export declare const Launcher: {
     getGames: () => Promise<any>;
     getGameInfo: (gameId: number) => Promise<any>;
 };
+export declare enum GroupType {
+    Open = 0,
+    Public = 1,
+    Private = 2
+}
 export declare const Groups: {
     Member: number;
     Moderator: number;
@@ -44,19 +51,28 @@ export declare const Groups: {
     Open: number;
     Public: number;
     Private: number;
-    getJoined: () => AsyncIterableIterator<any>;
-    getVisible: () => AsyncIterableIterator<any>;
-    getInvited: () => AsyncIterableIterator<any>;
-    getRequested: () => AsyncIterableIterator<any>;
+    getJoined: () => AsyncGenerator<any, void, unknown>;
+    getVisible: (type: GroupType) => AsyncGenerator<any, void, unknown>;
+    getInvited: () => AsyncGenerator<any, void, unknown>;
+    getRequested: () => AsyncGenerator<any, void, unknown>;
     createGroup: (name: string, description: string) => Promise<any>;
     getGroupInfo: (groupId: string | number) => Promise<any>;
-    getMembers: (groupId: string | number) => AsyncIterableIterator<any>;
-    getBans: (groupId: string | number) => AsyncIterableIterator<any>;
+    editGroupInfo: (groupId: string | number, groupInfo: {
+        name: string | undefined;
+        description: string | undefined;
+        groupType: GroupType | undefined;
+    }) => Promise<any>;
+    editGroupRole: (groupId: string | number, roleId: string | number, newInfo: {
+        name: string | undefined;
+        permissions: string[] | undefined;
+    }) => Promise<any>;
+    getMembers: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    getBans: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
     banUser: (groupId: string | number, userId: string | number) => Promise<any>;
     unbanUser: (groupId: string | number, userId: string | number) => Promise<any>;
     getMemberInfo: (groupId: string | number, userId: string | number) => Promise<any>;
-    getJoinRequests: (groupId: string | number) => AsyncIterableIterator<any>;
-    getOutgoingInvites: (groupId: string | number) => AsyncIterableIterator<any>;
+    getJoinRequests: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    getOutgoingInvites: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
     requestJoin: (groupId: string | number) => Promise<any>;
     revokeRequest: (groupId: string | number) => Promise<any>;
     acceptInvite: (groupId: string | number) => Promise<any>;
@@ -68,13 +84,14 @@ export declare const Groups: {
     rejectRequest: (groupId: string | number, userId: string | number) => Promise<any>;
     kickMember: (groupId: string | number, userId: string | number) => Promise<any>;
     editPermissions: (groupId: string | number, userId: string | number, permissions: number) => Promise<any>;
+    setMemberRole: (groupId: string | number, userId: string | number, roleId: string | number) => Promise<any>;
     createServer: (groupId: string | number, name: string, description: string, region: string) => Promise<any>;
 };
 export declare const Friends: {
-    getUserFriends: (userId: string | number) => AsyncIterableIterator<any>;
-    getFriends: () => AsyncIterableIterator<any>;
-    getOutgoingRequests: () => AsyncIterableIterator<any>;
-    getFriendRequests: () => AsyncIterableIterator<any>;
+    getUserFriends: (userId: string | number) => AsyncGenerator<any, void, unknown>;
+    getFriends: () => AsyncGenerator<any, void, unknown>;
+    getOutgoingRequests: () => AsyncGenerator<any, void, unknown>;
+    getFriendRequests: () => AsyncGenerator<any, void, unknown>;
     acceptFriendRequest: (userId: string | number) => Promise<any>;
     addFriend: (userId: string | number) => Promise<any>;
     revokeFriendRequest: (userId: string | number) => Promise<any>;
@@ -84,29 +101,71 @@ export declare const Friends: {
 export declare const Users: {
     getInfo: (userId: number) => Promise<any>;
     register: (username: string, passwordHash: string, email: string, referral?: string | undefined) => Promise<any>;
-    getVerified: () => Promise<any>;
+    getVerified: () => Promise<boolean>;
     requestVerificationEmail: (email: string) => Promise<any>;
     verify: (token: string) => Promise<any>;
     changePassword: (oldHash: string, newHash: string) => Promise<any>;
     resetPassword: (userId: number, newHash: string, token: string) => Promise<any>;
     changeUsername: (username: string) => Promise<any>;
     findUserByUsername: (username: string) => Promise<any>;
+    getStatistics: (userId: Number) => Promise<any>;
 };
 export declare const Meta: {};
 export declare const Servers: {
     getRegions: () => Promise<any>;
+    getConsoleServers: () => Promise<any>;
     getFavorites: () => Promise<any>;
     addFavorite: (serverId: string | number) => Promise<any>;
     removeFavorite: (serverId: string | number) => Promise<any>;
     getRunning: () => Promise<any>;
     getOnline: () => Promise<any>;
+    getPublic: () => Promise<any>;
+    getJoined: () => Promise<any>;
+    getOpen: () => Promise<any>;
     getDetails: (serverId: string | number) => Promise<any>;
     getControllable: () => Promise<any>;
-    joinConsole: (id: string | number, should_launch?: boolean) => Promise<any>;
+    joinConsole: (id: string | number, should_launch?: boolean, ignore_offline?: boolean) => Promise<any>;
 };
 export declare const Services: {
     resetPassword: (email: string) => Promise<any>;
     getTemporaryIdentity: (data: any) => Promise<any>;
+};
+export declare enum UserReportStatus {
+    Unprocessed = 1,
+    AwaitingReply = 2,
+    Resolved = 4,
+    Rejected = 8
+}
+export declare enum UserReportType {
+    UserReport = 0,
+    LostItems = 1,
+    TempBan = 2,
+    PermaBan = 3,
+    Warning = 4,
+    Note = 5
+}
+export declare type UserReport = {
+    topic_user: number;
+    assignee: number;
+    incident_date: Date;
+    type: UserReportType;
+    status: UserReportStatus;
+    linked_reports: {
+        name: string;
+        report_id: number;
+    }[];
+    title: string;
+    comments: {
+        user_id: number;
+        comment: string;
+        timestamp: Date;
+    };
+};
+export declare const UserReports: {
+    getUserReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
+    getTopicReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
+    getAssigneeReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
+    submitReport: (report: UserReport) => Promise<any>;
 };
 export declare const Shop: {
     getSandbox: () => Promise<any>;
