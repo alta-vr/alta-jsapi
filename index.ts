@@ -791,7 +791,7 @@ export const Users =
     {
         logger.info("Reset password " + userId);
 
-        return request('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
+        return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
     },
 
     changeUsername: (username: string) =>
