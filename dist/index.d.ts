@@ -103,7 +103,7 @@ export declare const Users: {
     register: (username: string, passwordHash: string, email: string, referral?: string | undefined) => Promise<any>;
     getVerified: () => Promise<boolean>;
     requestVerificationEmail: (email: string) => Promise<any>;
-    verify: (token: string) => Promise<any>;
+    verify: (userId: number, token: string) => Promise<any>;
     changePassword: (oldHash: string, newHash: string) => Promise<any>;
     resetPassword: (userId: number, newHash: string, token: string) => Promise<any>;
     changeUsername: (username: string) => Promise<any>;

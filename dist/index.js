@@ -532,9 +532,9 @@ exports.Users = {
         logger.info("Request verification");
         return request('PUT', `users/${accessToken.UserId}/verification`, false, { email });
     },
-    verify: (token) => {
+    verify: (userId, token) => {
         logger.info("Verify");
-        return request('POST', `users/${accessToken.UserId}/verification`, false, { verification_token: token });
+        return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
     },
     changePassword: (oldHash, newHash) => {
         logger.info("Change password");
