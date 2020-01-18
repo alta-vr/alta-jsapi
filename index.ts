@@ -165,7 +165,6 @@ async function * requestPaged(method: string, path: string, limit:number|undefin
         try
         {
             var jsonBody = JSON.stringify(body);
-            console.log(jsonBody);
             
             var response:any = await rp({url: currentEndpoint + path, method, headers, body:jsonBody, rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
         }
@@ -272,6 +271,8 @@ export const Sessions =
 
     setLocalTokens: (tokens: Tokens) =>
     {
+        logger.info("Setting local tokens");
+
         if (!!tokens.access_token && accessString != tokens.access_token)
         {
             accessString = tokens.access_token;
@@ -352,6 +353,13 @@ export const Sessions =
 
         return requestNoLogin('POST', 'sessions', false, { username, password_hash: passwordHash })
             .then((result:Tokens) => Sessions.setLocalTokens(result))
+            .catch(error =>
+            {
+               logger.info("Error logging in");
+               logger.info(headers);
+               
+               throw error;
+            });
     },
 
     loginWithEmail: (email: string, passwordHash: string) => 
@@ -364,7 +372,14 @@ export const Sessions =
         }
 
         return requestNoLogin('POST', 'sessions/email', false, { email, password_hash: passwordHash })
-            .then((result:Tokens) => Sessions.setLocalTokens(result));
+            .then((result:Tokens) => Sessions.setLocalTokens(result))
+            .catch(error =>
+            {
+               logger.info("Error logging in");
+               logger.info(headers);
+               
+               throw error;
+            });
     },
 
     loginWithRefreshToken: (refreshToken: string) =>

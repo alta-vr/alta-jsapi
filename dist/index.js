@@ -127,7 +127,6 @@ function requestPaged(method, path, limit = undefined, isCached = false, body = 
         while (true) {
             try {
                 var jsonBody = JSON.stringify(body);
-                console.log(jsonBody);
                 var response = yield __await(request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: jsonBody, rejectUnauthorized, resolveWithFullResponse: true, qs: { paginationToken: lastToken, limit } }));
             }
             catch (error) {
@@ -200,6 +199,7 @@ exports.Sessions = {
         return { access_token: accessString, refresh_token: refreshString, identity_token: identityString };
     },
     setLocalTokens: (tokens) => {
+        logger.info("Setting local tokens");
         if (!!tokens.access_token && accessString != tokens.access_token) {
             accessString = tokens.access_token;
             headers.Authorization = "Bearer " + accessString;
@@ -251,7 +251,12 @@ exports.Sessions = {
             return exports.Sessions.loginOffline(username);
         }
         return requestNoLogin('POST', 'sessions', false, { username, password_hash: passwordHash })
-            .then((result) => exports.Sessions.setLocalTokens(result));
+            .then((result) => exports.Sessions.setLocalTokens(result))
+            .catch(error => {
+            logger.info("Error logging in");
+            logger.info(headers);
+            throw error;
+        });
     },
     loginWithEmail: (email, passwordHash) => {
         logger.info("Login with email");
@@ -259,7 +264,12 @@ exports.Sessions = {
             return exports.Sessions.loginOffline(email);
         }
         return requestNoLogin('POST', 'sessions/email', false, { email, password_hash: passwordHash })
-            .then((result) => exports.Sessions.setLocalTokens(result));
+            .then((result) => exports.Sessions.setLocalTokens(result))
+            .catch(error => {
+            logger.info("Error logging in");
+            logger.info(headers);
+            throw error;
+        });
     },
     loginWithRefreshToken: (refreshToken) => {
         logger.info("Login with refresh");
