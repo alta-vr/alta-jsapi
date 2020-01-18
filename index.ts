@@ -831,11 +831,11 @@ export const Users =
         return request('PUT', `users/${accessToken.UserId}/verification`, false, { email });
     },
 
-    verify: (token: string) =>
+    verify: (userId:number, token: string) =>
     {
         logger.info("Verify");
 
-        return request('POST', `users/${accessToken.UserId}/verification`, false, { verification_token: token });
+        return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
     },
 
     changePassword: (oldHash: string, newHash: string) =>
@@ -849,7 +849,7 @@ export const Users =
     {
         logger.info("Reset password " + userId);
 
-        return request('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
+        return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
     },
 
     changeUsername: (username: string) =>

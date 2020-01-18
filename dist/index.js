@@ -152,7 +152,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
+    headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
 }
@@ -542,9 +542,9 @@ exports.Users = {
         logger.info("Request verification");
         return request('PUT', `users/${accessToken.UserId}/verification`, false, { email });
     },
-    verify: (token) => {
+    verify: (userId, token) => {
         logger.info("Verify");
-        return request('POST', `users/${accessToken.UserId}/verification`, false, { verification_token: token });
+        return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
     },
     changePassword: (oldHash, newHash) => {
         logger.info("Change password");
@@ -552,7 +552,7 @@ exports.Users = {
     },
     resetPassword: (userId, newHash, token) => {
         logger.info("Reset password " + userId);
-        return request('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
+        return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
     },
     changeUsername: (username) => {
         logger.info("Change username " + username);
