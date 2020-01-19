@@ -732,6 +732,14 @@ export const Groups =
     }
 }
 
+export const Analytics =
+{
+    sendInstallation : (type:string, version_from:string, version_to:string, error:string) =>
+    {
+        return request('POST', 'analytics/installation', false, { type, version_from, version_to, error });
+    }
+}
+
 export const Friends =
 {
     getUserFriends : (userId: number|string) =>

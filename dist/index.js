@@ -485,6 +485,11 @@ exports.Groups = {
         });
     }
 };
+exports.Analytics = {
+    sendInstallation: (type, version_from, version_to, error) => {
+        return request('POST', 'analytics/installation', false, { type, version_from, version_to, error });
+    }
+};
 exports.Friends = {
     getUserFriends: (userId) => {
         logger.info("Get user friends");

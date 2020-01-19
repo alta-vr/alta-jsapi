@@ -87,6 +87,9 @@ export declare const Groups: {
     setMemberRole: (groupId: string | number, userId: string | number, roleId: string | number) => Promise<any>;
     createServer: (groupId: string | number, name: string, description: string, region: string) => Promise<any>;
 };
+export declare const Analytics: {
+    sendInstallation: (type: string, version_from: string, version_to: string, error: string) => Promise<any>;
+};
 export declare const Friends: {
     getUserFriends: (userId: string | number) => AsyncGenerator<any, void, unknown>;
     getFriends: () => AsyncGenerator<any, void, unknown>;
