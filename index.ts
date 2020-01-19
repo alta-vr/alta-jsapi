@@ -202,8 +202,11 @@ function requestRefresh(method: string, path: string, isCached: boolean = false,
         throw new Error("Unsupported in offline mode: " + path);
     }
 
-    headers = { ...headers, Authorization: "Bearer " + refreshString };
-
+    if (!!refreshString)
+    {
+        headers = { ...headers, Authorization: "Bearer " + refreshString };
+    }
+    
     return rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized})
     .then((response:string) => JSON.parse(response));
 }

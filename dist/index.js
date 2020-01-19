@@ -152,7 +152,9 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
+    if (!!refreshString) {
+        headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
+    }
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
 }
