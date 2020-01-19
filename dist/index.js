@@ -254,7 +254,7 @@ exports.Sessions = {
             .then((result) => exports.Sessions.setLocalTokens(result))
             .catch(error => {
             logger.info("Error logging in");
-            logger.info(headers);
+            logger.info(JSON.stringify(headers));
             throw error;
         });
     },
@@ -267,7 +267,7 @@ exports.Sessions = {
             .then((result) => exports.Sessions.setLocalTokens(result))
             .catch(error => {
             logger.info("Error logging in");
-            logger.info(headers);
+            logger.info(JSON.stringify(headers));
             throw error;
         });
     },

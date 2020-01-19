@@ -356,7 +356,7 @@ export const Sessions =
             .catch(error =>
             {
                logger.info("Error logging in");
-               logger.info(headers);
+               logger.info(JSON.stringify(headers));
                
                throw error;
             });
@@ -376,7 +376,7 @@ export const Sessions =
             .catch(error =>
             {
                logger.info("Error logging in");
-               logger.info(headers);
+               logger.info(JSON.stringify(headers));
                
                throw error;
             });
