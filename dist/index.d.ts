@@ -9,7 +9,7 @@ declare type Tokens = {
 export declare function setVersion(version: string): void;
 export declare function setUserAgent(userAgent: string): void;
 export declare const Sessions: {
-    ensureLoggedIn: () => Promise<{}>;
+    ensureLoggedIn: () => Promise<unknown>;
     getUserId: () => any;
     getVerified: () => any;
     getUsername: () => any;
@@ -51,10 +51,10 @@ export declare const Groups: {
     Open: number;
     Public: number;
     Private: number;
-    getJoined: () => AsyncIterableIterator<any>;
-    getVisible: (type: GroupType) => AsyncIterableIterator<any>;
-    getInvited: () => AsyncIterableIterator<any>;
-    getRequested: () => AsyncIterableIterator<any>;
+    getJoined: () => AsyncGenerator<any, void, unknown>;
+    getVisible: (type: GroupType) => AsyncGenerator<any, void, unknown>;
+    getInvited: () => AsyncGenerator<any, void, unknown>;
+    getRequested: () => AsyncGenerator<any, void, unknown>;
     createGroup: (name: string, description: string) => Promise<any>;
     getGroupInfo: (groupId: string | number) => Promise<any>;
     editGroupInfo: (groupId: string | number, groupInfo: {
@@ -66,13 +66,13 @@ export declare const Groups: {
         name: string | undefined;
         permissions: string[] | undefined;
     }) => Promise<any>;
-    getMembers: (groupId: string | number) => AsyncIterableIterator<any>;
-    getBans: (groupId: string | number) => AsyncIterableIterator<any>;
+    getMembers: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    getBans: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
     banUser: (groupId: string | number, userId: string | number) => Promise<any>;
     unbanUser: (groupId: string | number, userId: string | number) => Promise<any>;
     getMemberInfo: (groupId: string | number, userId: string | number) => Promise<any>;
-    getJoinRequests: (groupId: string | number) => AsyncIterableIterator<any>;
-    getOutgoingInvites: (groupId: string | number) => AsyncIterableIterator<any>;
+    getJoinRequests: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
+    getOutgoingInvites: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
     requestJoin: (groupId: string | number) => Promise<any>;
     revokeRequest: (groupId: string | number) => Promise<any>;
     acceptInvite: (groupId: string | number) => Promise<any>;
@@ -88,10 +88,10 @@ export declare const Groups: {
     createServer: (groupId: string | number, name: string, description: string, region: string) => Promise<any>;
 };
 export declare const Friends: {
-    getUserFriends: (userId: string | number) => AsyncIterableIterator<any>;
-    getFriends: () => AsyncIterableIterator<any>;
-    getOutgoingRequests: () => AsyncIterableIterator<any>;
-    getFriendRequests: () => AsyncIterableIterator<any>;
+    getUserFriends: (userId: string | number) => AsyncGenerator<any, void, unknown>;
+    getFriends: () => AsyncGenerator<any, void, unknown>;
+    getOutgoingRequests: () => AsyncGenerator<any, void, unknown>;
+    getFriendRequests: () => AsyncGenerator<any, void, unknown>;
     acceptFriendRequest: (userId: string | number) => Promise<any>;
     addFriend: (userId: string | number) => Promise<any>;
     revokeFriendRequest: (userId: string | number) => Promise<any>;
@@ -162,9 +162,9 @@ export declare type UserReport = {
     };
 };
 export declare const UserReports: {
-    getUserReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncIterableIterator<any>;
-    getTopicReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncIterableIterator<any>;
-    getAssigneeReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncIterableIterator<any>;
+    getUserReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
+    getTopicReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
+    getAssigneeReports: (status: UserReportStatus, user_ids?: number[] | undefined) => AsyncGenerator<any, void, unknown>;
     submitReport: (report: UserReport) => Promise<any>;
 };
 export declare const Shop: {

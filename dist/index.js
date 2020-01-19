@@ -58,7 +58,7 @@ if (process.env.APPDATA != undefined) {
     if (fs_1.default.existsSync(settingsFile)) {
         var settings = JSON.parse(fs_1.default.readFileSync(settingsFile, "utf8"));
         rejectUnauthorized = !!settings.rejectUnauthorized;
-        loggingLevel = settings.jsapiLoggingLevel;
+        loggingLevel = settings.jsapiLoggingLevel || 0;
         if (!!settings.apiEndpoint) {
             exports.setEndpoint(settings.apiEndpoint);
         }
@@ -152,7 +152,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
+    headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
 }

@@ -63,7 +63,7 @@ if (process.env.APPDATA != undefined)
     {
         var settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
         rejectUnauthorized = !!settings.rejectUnauthorized;
-        loggingLevel = settings.jsapiLoggingLevel;
+        loggingLevel = settings.jsapiLoggingLevel || 0;
         
         if (!!settings.apiEndpoint) 
         {
