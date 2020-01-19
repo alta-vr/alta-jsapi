@@ -206,7 +206,7 @@ function requestRefresh(method: string, path: string, isCached: boolean = false,
     {
         headers = { ...headers, Authorization: "Bearer " + refreshString };
     }
-    
+
     return rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized})
     .then((response:string) => JSON.parse(response));
 }
@@ -387,6 +387,11 @@ export const Sessions =
 
     loginWithRefreshToken: (refreshToken: string) =>
     {
+        if (!refreshToken || refreshToken.includes('\u0000'))
+        {
+            throw new Error("Invalid refresh token");
+        }
+
         logger.info("Login with refresh");
 
         if (isOffline)

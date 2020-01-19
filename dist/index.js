@@ -274,6 +274,9 @@ exports.Sessions = {
         });
     },
     loginWithRefreshToken: (refreshToken) => {
+        if (!refreshToken || refreshToken.includes('\u0000')) {
+            throw new Error("Invalid refresh token");
+        }
         logger.info("Login with refresh");
         if (isOffline) {
             return exports.Sessions.loginOffline("refresh");
