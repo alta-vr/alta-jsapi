@@ -734,9 +734,9 @@ export const Groups =
 
 export const Analytics =
 {
-    sendInstallation : (type:string, version_from:string|undefined, version_to:string, error:string|undefined) =>
+    sendInstallation : (type:string, version_from:string|undefined, version_to:string, error:string|undefined, start_id:number|undefined) =>
     {
-        return request('POST', 'analytics/installation', false, { type, version_from, version_to, error });
+        return request('POST', 'analytics/installation', false, { type, version_from, version_to, error, start_id });
     }
 }
 
