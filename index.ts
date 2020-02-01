@@ -252,7 +252,7 @@ export const Sessions =
     getUserId: () => (!!accessToken && accessToken.UserId),
     getVerified: () => (!!accessToken && (accessToken.is_verified || accessToken.is_verified === "True")),
     getUsername: () => (!!accessToken && accessToken.Username),
-    getMember: () => Sessions.getPolicy('member'),
+    getSupporter: () => Sessions.getPolicy('supporter'),
     getPolicy: (policy: string) => (!!accessToken && accessToken.Policy.some((item: string) => item === policy)),
 
     connectToCookies(providedCookies: any)
