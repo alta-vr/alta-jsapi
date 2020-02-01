@@ -153,7 +153,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
         throw new Error("Unsupported in offline mode: " + path);
     }
     if (!!refreshString) {
-        headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
+        headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
     }
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
@@ -187,7 +187,7 @@ exports.Sessions = {
     getUserId: () => (!!accessToken && accessToken.UserId),
     getVerified: () => (!!accessToken && (accessToken.is_verified || accessToken.is_verified === "True")),
     getUsername: () => (!!accessToken && accessToken.Username),
-    getMember: () => exports.Sessions.getPolicy('member'),
+    getSupporter: () => exports.Sessions.getPolicy('supporter'),
     getPolicy: (policy) => (!!accessToken && accessToken.Policy.some((item) => item === policy)),
     connectToCookies(providedCookies) {
         cookies = providedCookies;
