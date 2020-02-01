@@ -189,6 +189,7 @@ exports.Sessions = {
     getUsername: () => (!!accessToken && accessToken.Username),
     getSupporter: () => exports.Sessions.getPolicy('supporter'),
     getPolicy: (policy) => (!!accessToken && accessToken.Policy.some((item) => item === policy)),
+    getPolicies: () => !!accessToken && accessToken.Policy,
     connectToCookies(providedCookies) {
         cookies = providedCookies;
         exports.Sessions.setLocalTokens({
@@ -561,6 +562,10 @@ exports.Users = {
         logger.info("Verify");
         return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
     },
+    changeUsername: (username, passHash) => {
+        logger.info("Change username");
+        return request(`PUT`, `users/me/username`, false, { new_username: username, old_password_hash: passHash });
+    },
     changePassword: (oldHash, newHash) => {
         logger.info("Change password");
         return request('PUT', `users/${accessToken.UserId}/password`, false, { old_password_hash: oldHash, new_password_hash: newHash });
@@ -568,10 +573,6 @@ exports.Users = {
     resetPassword: (userId, newHash, token) => {
         logger.info("Reset password " + userId);
         return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
-    },
-    changeUsername: (username) => {
-        logger.info("Change username " + username);
-        return request('PUT', `users/${accessToken.UserId}/username`, false, { new_username: username });
     },
     findUserByUsername: (username) => {
         logger.info("Find user with username " + username);

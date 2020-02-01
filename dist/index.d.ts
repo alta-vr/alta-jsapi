@@ -15,6 +15,7 @@ export declare const Sessions: {
     getUsername: () => any;
     getSupporter: () => any;
     getPolicy: (policy: string) => any;
+    getPolicies: () => any;
     connectToCookies(providedCookies: any): void;
     getLocalTokens: () => {
         access_token: string | undefined;
@@ -110,9 +111,9 @@ export declare const Users: {
     getVerified: () => Promise<boolean>;
     requestVerificationEmail: (email: string) => Promise<any>;
     verify: (userId: number, token: string) => Promise<any>;
+    changeUsername: (username: string, passHash: string) => Promise<any>;
     changePassword: (oldHash: string, newHash: string) => Promise<any>;
     resetPassword: (userId: number, newHash: string, token: string) => Promise<any>;
-    changeUsername: (username: string) => Promise<any>;
     findUserByUsername: (username: string) => Promise<any>;
     getStatistics: (userId: Number) => Promise<any>;
 };

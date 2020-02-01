@@ -254,6 +254,7 @@ export const Sessions =
     getUsername: () => (!!accessToken && accessToken.Username),
     getSupporter: () => Sessions.getPolicy('supporter'),
     getPolicy: (policy: string) => (!!accessToken && accessToken.Policy.some((item: string) => item === policy)),
+    getPolicies: () => !!accessToken && accessToken.Policy,
 
     connectToCookies(providedCookies: any)
     {
@@ -862,6 +863,13 @@ export const Users =
         return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
     },
 
+    changeUsername: (username : string, passHash: string) =>
+    {
+        logger.info("Change username");
+
+        return request(`PUT`, `users/me/username`, false, { new_username: username, old_password_hash: passHash });
+    },
+
     changePassword: (oldHash: string, newHash: string) =>
     {
         logger.info("Change password");
@@ -874,13 +882,6 @@ export const Users =
         logger.info("Reset password " + userId);
 
         return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
-    },
-
-    changeUsername: (username: string) =>
-    {
-        logger.info("Change username " + username);
-
-        return request('PUT', `users/${accessToken.UserId}/username`, false, { new_username: username });
     },
 
     findUserByUsername : (username : string) =>
