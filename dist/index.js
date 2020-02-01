@@ -153,7 +153,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
         throw new Error("Unsupported in offline mode: " + path);
     }
     if (!!refreshString) {
-        headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
+        headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
     }
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
@@ -484,6 +484,11 @@ exports.Groups = {
             region
         });
     }
+};
+exports.Security = {
+    sso: () => {
+        return request('GET', 'Security/sso');
+    },
 };
 exports.Analytics = {
     sendInstallation: (type, version_from, version_to, error, start_id) => {

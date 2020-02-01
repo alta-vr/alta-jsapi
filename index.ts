@@ -732,6 +732,14 @@ export const Groups =
     }
 }
 
+export const Security =
+{
+    sso : () =>
+    {
+        return request('GET', 'Security/sso');
+    },
+}
+
 export const Analytics =
 {
     sendInstallation : (type:string, version_from:string|undefined, version_to:string, error:string|undefined, start_id:number|undefined) =>
