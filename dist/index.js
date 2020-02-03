@@ -52,6 +52,7 @@ exports.setEndpoint = (endpoint) => {
     currentEndpoint = getEndpoint(endpoint);
 };
 exports.getRejectUnauthorized = () => rejectUnauthorized;
+const hasFs = !!fs_1.default.existsSync;
 if (process.env.APPDATA != undefined) {
     var settingsFile = path_1.default.join(process.env.APPDATA, 'Alta Launcher', 'Settings.json');
     console.log("Couldn't find Settings file to check rejectUnauthorized");
@@ -153,7 +154,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
         throw new Error("Unsupported in offline mode: " + path);
     }
     if (!!refreshString) {
-        headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
+        headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
     }
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
@@ -288,13 +289,15 @@ exports.Sessions = {
     checkRemembered: () => {
         logger.info("Check remembered");
         try {
-            if (!fs_1.default.existsSync(appdata)) {
-                fs_1.default.mkdirSync(appdata, { recursive: true });
-            }
-            var rememberPath = path_1.default.join(appdata, '.rememberme');
-            if (fs_1.default.existsSync(rememberPath)) {
-                var content = fs_1.default.readFileSync(rememberPath, 'utf8');
-                return exports.Sessions.loginWithRefreshToken(content);
+            if (hasFs) {
+                if (!fs_1.default.existsSync(appdata)) {
+                    fs_1.default.mkdirSync(appdata, { recursive: true });
+                }
+                var rememberPath = path_1.default.join(appdata, '.rememberme');
+                if (fs_1.default.existsSync(rememberPath)) {
+                    var content = fs_1.default.readFileSync(rememberPath, 'utf8');
+                    return exports.Sessions.loginWithRefreshToken(content);
+                }
             }
         }
         catch (error) {
@@ -306,11 +309,13 @@ exports.Sessions = {
     remember: () => {
         logger.info("Remember");
         cookies && cookies.set("refresh_token", refreshString, { path: '/' });
-        if (!fs_1.default.existsSync(appdata)) {
-            fs_1.default.mkdirSync(appdata, { recursive: true });
+        if (hasFs) {
+            if (!fs_1.default.existsSync(appdata)) {
+                fs_1.default.mkdirSync(appdata, { recursive: true });
+            }
+            var rememberPath = path_1.default.join(appdata, '.rememberme');
+            fs_1.default.writeFileSync(rememberPath, refreshString, 'utf8');
         }
-        var rememberPath = path_1.default.join(appdata, '.rememberme');
-        fs_1.default.writeFileSync(rememberPath, refreshString, 'utf8');
     },
     forget: () => {
         logger.info("Forget");
@@ -318,7 +323,7 @@ exports.Sessions = {
             cookies.remove("refresh_token", { path: '/' });
         }
         var rememberPath = path_1.default.join(appdata, '.rememberme');
-        if (fs_1.default.existsSync(rememberPath)) {
+        if (hasFs && fs_1.default.existsSync(rememberPath)) {
             fs_1.default.unlinkSync(rememberPath);
         }
     },

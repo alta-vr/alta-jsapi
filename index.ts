@@ -53,6 +53,8 @@ export const setEndpoint = (endpoint:string) =>
 
 export const getRejectUnauthorized = () => rejectUnauthorized;
 
+const hasFs = !!fs.existsSync;
+
 if (process.env.APPDATA != undefined)
 {
     var settingsFile = path.join(process.env.APPDATA, 'Alta Launcher', 'Settings.json');
@@ -411,18 +413,21 @@ export const Sessions =
 
         try
         {
-            if (!fs.existsSync(appdata))
+            if (hasFs)
             {
-                fs.mkdirSync(appdata, { recursive: true });
-            }
+                if (!fs.existsSync(appdata))
+                {
+                    fs.mkdirSync(appdata, { recursive: true });
+                }
 
-            var rememberPath = path.join(appdata, '.rememberme');
+                var rememberPath = path.join(appdata, '.rememberme');
 
-            if (fs.existsSync(rememberPath))
-            {
-                var content = fs.readFileSync(rememberPath, 'utf8');
+                if (fs.existsSync(rememberPath))
+                {
+                    var content = fs.readFileSync(rememberPath, 'utf8');
 
-                return Sessions.loginWithRefreshToken(content);
+                    return Sessions.loginWithRefreshToken(content);
+                }
             }
         }
         catch (error)
@@ -440,14 +445,17 @@ export const Sessions =
 
         cookies && cookies.set("refresh_token", refreshString, { path: '/' });
 
-        if (!fs.existsSync(appdata))
+        if (hasFs)
         {
-            fs.mkdirSync(appdata, { recursive: true });
+            if (!fs.existsSync(appdata))
+            {
+                fs.mkdirSync(appdata, { recursive: true });
+            }
+
+            var rememberPath = path.join(appdata, '.rememberme');
+
+            fs.writeFileSync(rememberPath, refreshString, 'utf8');
         }
-
-        var rememberPath = path.join(appdata, '.rememberme');
-
-        fs.writeFileSync(rememberPath, refreshString, 'utf8');
     },
 
     forget : () =>
@@ -461,7 +469,7 @@ export const Sessions =
 
         var rememberPath = path.join(appdata, '.rememberme');
 
-        if (fs.existsSync(rememberPath))
+        if (hasFs && fs.existsSync(rememberPath))
         {
             fs.unlinkSync(rememberPath);
         }
