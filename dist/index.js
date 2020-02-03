@@ -154,7 +154,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
         throw new Error("Unsupported in offline mode: " + path);
     }
     if (!!refreshString) {
-        headers = Object.assign({}, headers, { Authorization: "Bearer " + refreshString });
+        headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
     }
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
@@ -569,7 +569,7 @@ exports.Users = {
     },
     changeUsername: (username, passHash) => {
         logger.info("Change username");
-        return request(`PUT`, `users/me/username`, false, { new_username: username, old_password_hash: passHash });
+        return request(`PUT`, `users/me/username`, false, { new_username: username, password_hash: passHash });
     },
     changePassword: (oldHash, newHash) => {
         logger.info("Change password");
