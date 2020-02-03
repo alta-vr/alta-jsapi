@@ -867,7 +867,7 @@ export const Users =
     {
         logger.info("Change username");
 
-        return request(`PUT`, `users/me/username`, false, { new_username: username, old_password_hash: passHash });
+        return request(`PUT`, `users/me/username`, false, { new_username: username, password_hash: passHash });
     },
 
     changePassword: (oldHash: string, newHash: string) =>
