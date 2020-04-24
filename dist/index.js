@@ -333,6 +333,42 @@ exports.Sessions = {
             .then((result) => exports.Sessions.setLocalTokens(result));
     },
 };
+var BanType;
+(function (BanType) {
+    BanType[BanType["Server"] = 0] = "Server";
+    BanType[BanType["Global"] = 1] = "Global";
+})(BanType = exports.BanType || (exports.BanType = {}));
+var BanMethod;
+(function (BanMethod) {
+    BanMethod[BanMethod["UserId"] = 1] = "UserId";
+    BanMethod[BanMethod["IpAddress"] = 2] = "IpAddress";
+    BanMethod[BanMethod["DeviceId"] = 4] = "DeviceId";
+})(BanMethod = exports.BanMethod || (exports.BanMethod = {}));
+exports.Bans = {
+    createBan: (userid, duration_hours, type, method, reason, servers) => {
+        logger.info(`Creating ban ${userid}`);
+        return request('POST', 'bans', false, {
+            userid,
+            duration_hours,
+            type,
+            method,
+            reason,
+            servers
+        });
+    },
+    getAll: () => {
+        logger.info(`Get all banned`);
+        return request('GET', `bans`);
+    },
+    getModBans: (modId) => {
+        logger.info(`Get banned ${modId}`);
+        return request('GET', `bans/${modId}`);
+    },
+    getUserBans: (userId) => {
+        logger.info(`Get banned ${userId}`);
+        return request('GET', `bans/user/${userId}`);
+    }
+};
 exports.Launcher = {
     getGames: () => {
         logger.info("Get games");

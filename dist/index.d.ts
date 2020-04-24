@@ -34,6 +34,21 @@ export declare const Sessions: {
     forget: () => void;
     refreshSession: () => Promise<void>;
 };
+export declare enum BanType {
+    Server = 0,
+    Global = 1
+}
+export declare enum BanMethod {
+    UserId = 1,
+    IpAddress = 2,
+    DeviceId = 4
+}
+export declare const Bans: {
+    createBan: (userid: number, duration_hours: number, type: BanType, method: BanMethod, reason: string, servers: number[] | undefined) => Promise<any>;
+    getAll: () => Promise<any>;
+    getModBans: (modId: string | number) => Promise<any>;
+    getUserBans: (userId: string | number) => Promise<any>;
+};
 export declare const Launcher: {
     getGames: () => Promise<any>;
     getGameInfo: (gameId: number) => Promise<any>;

@@ -484,6 +484,56 @@ export const Sessions =
     },
 }
 
+export enum BanType
+{
+    Server,
+    Global
+}
+
+export enum BanMethod
+{
+    UserId = 1 << 0,
+    IpAddress = 1 << 1,
+    DeviceId = 1 << 2
+}
+
+export const Bans =
+{
+    createBan : (userid:number, duration_hours:number, type:BanType, method:BanMethod, reason:string, servers:number[]|undefined) =>
+    {
+        logger.info(`Creating ban ${userid}`);
+
+        return request('POST', 'bans', false,
+        {
+            userid,
+            duration_hours,
+            type,
+            method,
+            reason,
+            servers
+        });
+    },
+        
+    getAll : () =>
+    {
+        logger.info(`Get all banned`);
+    
+        return request('GET', `bans`);
+    }, 
+    getModBans : (modId : number|string) =>
+    {
+        logger.info(`Get banned ${modId}`);
+    
+        return request('GET', `bans/${modId}`);
+    }, 
+    getUserBans : (userId : number|string) =>
+    {
+        logger.info(`Get banned ${userId}`);
+    
+        return request('GET', `bans/user/${userId}`);
+    }
+}
+
 export const Launcher =
 {
     getGames: () =>
