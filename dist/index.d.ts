@@ -1,4 +1,4 @@
-import memoizee from 'memoizee';
+import memoizee from "memoizee";
 export declare const setEndpoint: (endpoint: string) => void;
 export declare const getRejectUnauthorized: () => boolean;
 declare type Tokens = {
@@ -44,7 +44,7 @@ export declare enum BanMethod {
     DeviceId = 4
 }
 export declare const Bans: {
-    createBan: (userid: number, duration_hours: number, type: BanType, method: BanMethod, reason: string, servers: number[] | undefined) => Promise<any>;
+    createBan: (user_id: number, duration_hours: number, type: BanType, method: BanMethod, reason: string, servers: number[] | undefined) => Promise<any>;
     getAll: () => Promise<any>;
     getModBans: (modId: string | number) => Promise<any>;
     getUserBans: (userId: string | number) => Promise<any>;
