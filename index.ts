@@ -574,7 +574,7 @@ export const Bans = {
   getModBans: (modId: number | string) => {
     logger.info(`Get banned ${modId}`);
 
-    return request("GET", `bans/${modId}`);
+    return request("GET", `bans/creator/${modId}`);
   },
   getUserBans: (userId: number | string) => {
     logger.info(`Get banned ${userId}`);

@@ -440,7 +440,7 @@ exports.Bans = {
     },
     getModBans: (modId) => {
         logger.info(`Get banned ${modId}`);
-        return request("GET", `bans/${modId}`);
+        return request("GET", `bans/creator/${modId}`);
     },
     getUserBans: (userId) => {
         logger.info(`Get banned ${userId}`);
