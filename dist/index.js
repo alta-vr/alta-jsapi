@@ -434,16 +434,24 @@ exports.Bans = {
             servers,
         });
     },
+    deleteBan: (banId) => {
+        logger.info(`Delete ban by ID`);
+        return request("DELETE", `bans/${banId}`);
+    },
+    getBan: (banId) => {
+        logger.info(`Get ban by ID`);
+        return request("GET", `bans/${banId}`);
+    },
     getAll: () => {
         logger.info(`Get all banned`);
         return request("GET", `bans`);
     },
     getModBans: (modId) => {
-        logger.info(`Get banned ${modId}`);
+        logger.info(`Get bans from ${modId}`);
         return request("GET", `bans/creator/${modId}`);
     },
     getUserBans: (userId) => {
-        logger.info(`Get banned ${userId}`);
+        logger.info(`Get bans for ${userId}`);
         return request("GET", `bans/user/${userId}`);
     },
 };

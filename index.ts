@@ -566,18 +566,32 @@ export const Bans = {
     });
   },
 
+  deleteBan: (banId: number) => {
+    logger.info(`Delete ban by ID`);
+
+    return request("DELETE", `bans/${banId}`);
+  },
+
+  getBan: (banId: number) => {
+    logger.info(`Get ban by ID`);
+
+    return request("GET", `bans/${banId}`);
+  },
+
   getAll: () => {
     logger.info(`Get all banned`);
 
     return request("GET", `bans`);
   },
-  getModBans: (modId: number | string) => {
-    logger.info(`Get banned ${modId}`);
+
+  getModBans: (modId: number) => {
+    logger.info(`Get bans from ${modId}`);
 
     return request("GET", `bans/creator/${modId}`);
   },
-  getUserBans: (userId: number | string) => {
-    logger.info(`Get banned ${userId}`);
+
+  getUserBans: (userId: number) => {
+    logger.info(`Get bans for ${userId}`);
 
     return request("GET", `bans/user/${userId}`);
   },

@@ -45,9 +45,11 @@ export declare enum BanMethod {
 }
 export declare const Bans: {
     createBan: (user_id: number, duration_hours: number, type: BanType, method: BanMethod, reason: string, servers: number[] | undefined) => Promise<any>;
+    deleteBan: (banId: number) => Promise<any>;
+    getBan: (banId: number) => Promise<any>;
     getAll: () => Promise<any>;
-    getModBans: (modId: string | number) => Promise<any>;
-    getUserBans: (userId: string | number) => Promise<any>;
+    getModBans: (modId: number) => Promise<any>;
+    getUserBans: (userId: number) => Promise<any>;
 };
 export declare const Launcher: {
     getGames: () => Promise<any>;
