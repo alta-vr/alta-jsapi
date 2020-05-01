@@ -137,6 +137,7 @@ export declare const Users: {
 };
 export declare const Meta: {};
 export declare const Servers: {
+    getAll: (() => Promise<any>) & memoizee.Memoized<() => Promise<any>>;
     getRegions: () => Promise<any>;
     getConsoleServers: () => Promise<any>;
     getFavorites: () => Promise<any>;

@@ -1031,6 +1031,12 @@ export const Meta = {
 };
 
 export const Servers = {
+  getAll: memoizee(() => {
+    logger.info("Getting all servers");
+
+    return request("GET", `servers`);
+  }),
+
   getRegions: () => {
     logger.info("Get regions");
 
@@ -1170,7 +1176,7 @@ export const UserReports = {
     return requestPaged(
       "GET",
       `userReports?status=${status}${
-        !user_ids ? "" : `&user_ids=${user_ids.join()}`
+      !user_ids ? "" : `&user_ids=${user_ids.join()}`
       }`
     );
   },
@@ -1184,7 +1190,7 @@ export const UserReports = {
     return requestPaged(
       "GET",
       `userReports/topic?status=${status}${
-        !user_ids ? "" : `&user_ids=${user_ids.join()}`
+      !user_ids ? "" : `&user_ids=${user_ids.join()}`
       }`
     );
   },
@@ -1198,7 +1204,7 @@ export const UserReports = {
     return requestPaged(
       "GET",
       `userReports/assignee?status=${status}${
-        !user_ids ? "" : `&user_ids=${user_ids.join()}`
+      !user_ids ? "" : `&user_ids=${user_ids.join()}`
       }`
     );
   },

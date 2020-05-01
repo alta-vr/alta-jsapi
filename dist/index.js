@@ -738,6 +738,10 @@ exports.Meta = {
 //No applicable methods
 };
 exports.Servers = {
+    getAll: memoizee_1.default(() => {
+        logger.info("Getting all servers");
+        return request("GET", `servers`);
+    }),
     getRegions: () => {
         logger.info("Get regions");
         return requestNoLogin("GET", `servers/regions`);
