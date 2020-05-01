@@ -537,6 +537,7 @@ export const Sessions = {
 export enum BanType {
   Server,
   Global,
+  Public,
 }
 
 export enum BanMethod {
@@ -933,11 +934,11 @@ export const Friends = {
 };
 
 export const Users = {
-  getInfo: (userId: number) => {
+  getInfo: memoizee((userId: number) => {
     logger.info("Get user " + userId);
 
     return request("GET", `users/${userId}`);
-  },
+  }),
 
   register: (
     username: string,

@@ -36,7 +36,8 @@ export declare const Sessions: {
 };
 export declare enum BanType {
     Server = 0,
-    Global = 1
+    Global = 1,
+    Public = 2
 }
 export declare enum BanMethod {
     UserId = 1,
@@ -123,7 +124,7 @@ export declare const Friends: {
     removeFriend: (userId: string | number) => Promise<any>;
 };
 export declare const Users: {
-    getInfo: (userId: number) => Promise<any>;
+    getInfo: ((userId: number) => Promise<any>) & memoizee.Memoized<(userId: number) => Promise<any>>;
     register: (username: string, passwordHash: string, email: string, referral?: string | undefined) => Promise<any>;
     getVerified: () => Promise<boolean>;
     requestVerificationEmail: (email: string) => Promise<any>;

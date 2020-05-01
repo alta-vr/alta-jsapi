@@ -415,6 +415,7 @@ var BanType;
 (function (BanType) {
     BanType[BanType["Server"] = 0] = "Server";
     BanType[BanType["Global"] = 1] = "Global";
+    BanType[BanType["Public"] = 2] = "Public";
 })(BanType = exports.BanType || (exports.BanType = {}));
 var BanMethod;
 (function (BanMethod) {
@@ -669,10 +670,10 @@ exports.Friends = {
     },
 };
 exports.Users = {
-    getInfo: (userId) => {
+    getInfo: memoizee_1.default((userId) => {
         logger.info("Get user " + userId);
         return request("GET", `users/${userId}`);
-    },
+    }),
     register: (username, passwordHash, email, referral = undefined) => {
         logger.info("Register " + username);
         return requestNoLogin("POST", "users", false, {
