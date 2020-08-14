@@ -1226,6 +1226,26 @@ export const Shop = {
     // }
   },
 
+  Rewards: {
+    getRewards: () => {
+      logger.info("Getting all rewards")
+
+      return request("GET", "api/rewards/all")
+    },
+
+    getUnclaimedRewards: () => {
+      logger.info("Getting unclaimed rewards")
+
+      return request("GET", "api/rewards/unclaimed")
+    },
+
+    claimReward: (rewardIdentifier: number) => {
+      logger.info(`Claiming reward with identifier: ${rewardIdentifier}`)
+
+      return request("POST", `api/rewards/${rewardIdentifier}`)
+    }
+  },
+
   Account: {
     getProfile: () => {
       logger.info("Getting profile");
@@ -1281,6 +1301,7 @@ export const Shop = {
     },
 
     getRewards: () => {
+      logger.info("[OBSOLETE]: Function Deprecated (Use getRewards from Rewards)")
       logger.info("Getting account rewards");
 
       return request("GET", "shop/account/rewards");
