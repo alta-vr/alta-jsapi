@@ -155,6 +155,7 @@ export declare const Servers: {
 export declare const Services: {
     resetPassword: (email: string) => Promise<any>;
     getTemporaryIdentity: (data: any) => Promise<any>;
+    CheckTokenValidity: (token :string) => Promise<any>;
 };
 export declare enum UserReportStatus {
     Unprocessed = 1,

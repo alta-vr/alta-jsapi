@@ -809,6 +809,10 @@ exports.Services = {
             user_data: data,
         });
     },
+    CheckTokenValidity: (token) => {
+        logger.info("Checking validity of token");
+        return request('GET', `Services/identity-token/validate?token=${token}`);
+    },
 };
 var UserReportStatus;
 (function (UserReportStatus) {
