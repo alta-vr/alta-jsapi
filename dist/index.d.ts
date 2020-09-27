@@ -1,4 +1,4 @@
-import memoizee from 'memoizee';
+import memoizee from "memoizee";
 export declare const setEndpoint: (endpoint: string) => void;
 export declare const getRejectUnauthorized: () => boolean;
 declare type Tokens = {
@@ -36,6 +36,24 @@ export declare const Sessions: {
     remember: () => void;
     forget: () => void;
     refreshSession: () => Promise<void>;
+};
+export declare enum BanType {
+    Server = 0,
+    Global = 1,
+    Public = 2
+}
+export declare enum BanMethod {
+    UserId = 1,
+    IpAddress = 2,
+    DeviceId = 4
+}
+export declare const Bans: {
+    createBan: (user_id: number, duration_hours: number, type: BanType, method: BanMethod, reason: string, servers: number[] | undefined) => Promise<any>;
+    deleteBan: (banId: number) => Promise<any>;
+    getBan: (banId: number) => Promise<any>;
+    getAll: () => Promise<any>;
+    getModBans: (modId: number) => Promise<any>;
+    getUserBans: (userId: number) => Promise<any>;
 };
 export declare const Launcher: {
     getGames: () => Promise<any>;
@@ -110,7 +128,7 @@ export declare const Friends: {
     removeFriend: (userId: string | number) => Promise<any>;
 };
 export declare const Users: {
-    getInfo: (userId: number) => Promise<any>;
+    getInfo: ((userId: number) => Promise<any>) & memoizee.Memoized<(userId: number) => Promise<any>>;
     register: (username: string, passwordHash: string, email: string, referral?: string | undefined) => Promise<any>;
     getVerified: () => Promise<boolean>;
     requestVerificationEmail: (email: string) => Promise<any>;
@@ -123,6 +141,7 @@ export declare const Users: {
 };
 export declare const Meta: {};
 export declare const Servers: {
+    getAll: (() => Promise<any>) & memoizee.Memoized<() => Promise<any>>;
     getRegions: () => Promise<any>;
     getConsoleServers: () => Promise<any>;
     getFavorites: () => Promise<any>;
@@ -180,6 +199,11 @@ export declare const UserReports: {
 };
 export declare const Shop: {
     getSandbox: () => Promise<any>;
+    Rewards: {
+        getRewards: () => Promise<any>;
+        getUnclaimedRewards: () => Promise<any>;
+        claimReward: (rewardIdentifier: number) => Promise<any>;
+    };
     Account: {
         getProfile: () => Promise<any>;
         getPaymentMethods: () => Promise<any>;

@@ -1,40 +1,41 @@
-import rp from 'request-promise-native';
+import rp from "request-promise-native";
 
-import path from 'path';
-import fs from 'fs';
+import path from "path";
+import fs from "fs";
 
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-import memoizee from 'memoizee';
-import sha512 from 'crypto-js/sha512';
+import memoizee from "memoizee";
+import sha512 from "crypto-js/sha512";
 
-import customLogger from './logger';
+import customLogger from "./logger";
 
-var appdata = path.join(process.env.APPDATA || "./", 'Alta Launcher');
+var appdata = path.join(process.env.APPDATA || "./", "Alta Launcher");
 
-const publicBaseUrl = (name:String) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
+const publicBaseUrl = (name: String) =>
+    `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
 const localEndpoint = "http://localhost:13490/api/";
 
-function getEndpoint(name:String) 
+function getEndpoint(name: String)
 {
     switch (name)
     {
-        case 'dev':
-        case 'prod':
-        case 'test':
-        case 'latest':
+        case "dev":
+        case "prod":
+        case "test":
+        case "latest":
             return publicBaseUrl(name);
-        
-        case 'local':
+
+        case "local":
             return localEndpoint;
     }
 }
 
-const DEV = 'dev';
-const PROD = 'prod';
-const TEST = 'test';
-const LATEST = 'latest';
-const LOCAL = 'local';
+const DEV = "dev";
+const PROD = "prod";
+const TEST = "test";
+const LATEST = "latest";
+const LOCAL = "local";
 
 //Change here
 let currentEndpoint = getEndpoint(PROD);
@@ -43,9 +44,9 @@ let currentEndpoint = getEndpoint(PROD);
 let rejectUnauthorized = true;
 let loggingLevel = 0;
 
-var refreshPromise:Promise<void>|undefined;
+var refreshPromise: Promise<void> | undefined;
 
-export const setEndpoint = (endpoint:string) =>
+export const setEndpoint = (endpoint: string) =>
 {
     console.log("SETTING ENDPOINT TO " + endpoint);
     currentEndpoint = getEndpoint(endpoint);
@@ -57,7 +58,11 @@ const hasFs = !!fs.existsSync;
 
 if (process.env.APPDATA != undefined)
 {
-    var settingsFile = path.join(process.env.APPDATA, 'Alta Launcher', 'Settings.json');
+    var settingsFile = path.join(
+        process.env.APPDATA,
+        "Alta Launcher",
+        "Settings.json"
+    );
 
     console.log("Couldn't find Settings file to check rejectUnauthorized");
 
@@ -66,26 +71,25 @@ if (process.env.APPDATA != undefined)
         var settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
         rejectUnauthorized = !!settings.rejectUnauthorized;
         loggingLevel = settings.jsapiLoggingLevel || 0;
-        
-        if (!!settings.apiEndpoint) 
+
+        if (!!settings.apiEndpoint)
         {
             setEndpoint(settings.apiEndpoint);
         }
-        
+
         console.log("rejectUnauthorized: " + rejectUnauthorized);
-        console.log("jsapi logging level: " + loggingLevel)
+        console.log("jsapi logging level: " + loggingLevel);
     }
-}
-else
+} else
 {
     console.info("Couldn't find APPDATA to check rejectUnauthorized");
 }
 
-console.log("jsapi endpoint: " + currentEndpoint)
+console.log("jsapi endpoint: " + currentEndpoint);
 
-const logger = customLogger('WEBAPI', loggingLevel);
+const logger = customLogger("WEBAPI", loggingLevel);
 
-let isOffline:boolean = false;
+let isOffline: boolean = false;
 
 let accessToken: any;
 let refreshToken: any;
@@ -96,32 +100,35 @@ let refreshString: string | undefined;
 let identityString: string | undefined;
 let cookies: any;
 
-type Tokens =
-{
+type Tokens = {
     refresh_token: string;
     access_token: string;
     identity_token: string;
-}
-
-let headers =
-{
-    "Content-Type": "application/json",
-    'x-api-key': '2l6aQGoNes8EHb94qMhqQ5m2iaiOM9666oDTPORf',
-    'Authorization': '',
-    'User-Agent': 'Unknown'
 };
 
-export function setVersion(version:string)
+let headers = {
+    "Content-Type": "application/json",
+    "x-api-key": "2l6aQGoNes8EHb94qMhqQ5m2iaiOM9666oDTPORf",
+    Authorization: "",
+    "User-Agent": "Unknown",
+};
+
+export function setVersion(version: string)
 {
-    headers['User-Agent'] = 'Launcher/' + version;
+    headers["User-Agent"] = "Launcher/" + version;
 }
 
-export function setUserAgent(userAgent:string)
+export function setUserAgent(userAgent: string)
 {
-    headers['User-Agent'] = userAgent;
+    headers["User-Agent"] = userAgent;
 }
 
-export function requestNoLogin(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
+export function requestNoLogin(
+    method: string,
+    path: string,
+    isCached: boolean = false,
+    body: object | undefined = undefined
+)
 {
     logger.info("NO LOGIN: " + method + " " + path);
 
@@ -130,11 +137,21 @@ export function requestNoLogin(method: string, path: string, isCached: boolean =
         throw new Error("Unsupported in offline mode: " + path);
     }
 
-    return rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized})
-    .then((response:string) => JSON.parse(response));
+    return rp({
+        url: currentEndpoint + path,
+        method,
+        headers,
+        body: JSON.stringify(body),
+        rejectUnauthorized,
+    }).then((response: string) => JSON.parse(response));
 }
 
-export function request(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
+export function request(
+    method: string,
+    path: string,
+    isCached: boolean = false,
+    body: object | undefined = undefined
+)
 {
     logger.info(method + " " + path);
 
@@ -143,13 +160,39 @@ export function request(method: string, path: string, isCached: boolean = false,
         throw new Error("Unsupported in offline mode: " + path);
     }
 
-    return updateTokens()
-    //TODO: Remove the limit
-    .then(() => rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized, qs:{limit:20}}))
-    .then((response:string) => { try { return JSON.parse(response); } catch (error) { logger.info("Failed to parse response to " + path + " : " + response); } });
+    return (
+        updateTokens()
+            //TODO: Remove the limit
+            .then(() =>
+                rp({
+                    url: currentEndpoint + path,
+                    method,
+                    headers,
+                    body: JSON.stringify(body),
+                    rejectUnauthorized,
+                    qs: { limit: 20 },
+                })
+            )
+            .then((response: string) =>
+            {
+                try
+                {
+                    return JSON.parse(response);
+                } catch (error)
+                {
+                    logger.info("Failed to parse response to " + path + " : " + response);
+                }
+            })
+    );
 }
 
-export async function * requestPaged(method: string, path: string, limit:number|undefined = undefined, isCached: boolean = false, body: object | undefined = undefined)
+export async function* requestPaged(
+    method: string,
+    path: string,
+    limit: number | undefined = undefined,
+    isCached: boolean = false,
+    body: object | undefined = undefined
+)
 {
     logger.info(method + " " + path);
 
@@ -167,10 +210,17 @@ export async function * requestPaged(method: string, path: string, limit:number|
         try
         {
             var jsonBody = JSON.stringify(body);
-            
-            var response:any = await rp({url: currentEndpoint + path, method, headers, body:jsonBody, rejectUnauthorized, resolveWithFullResponse:true, qs:{paginationToken:lastToken, limit}});
-        }
-        catch (error)
+
+            var response: any = await rp({
+                url: currentEndpoint + path,
+                method,
+                headers,
+                body: jsonBody,
+                rejectUnauthorized,
+                resolveWithFullResponse: true,
+                qs: { paginationToken: lastToken, limit },
+            });
+        } catch (error)
         {
             console.error("Error in pagination");
             console.error(error);
@@ -180,15 +230,16 @@ export async function * requestPaged(method: string, path: string, limit:number|
 
         lastToken = response.headers.paginationtoken;
 
-        try 
-        { 
-            yield JSON.parse(response.body); 
-        } 
-        catch (error) 
+        try
         {
-            logger.info("Failed to parse response to " + path + " : " + response.body); 
+            yield JSON.parse(response.body);
+        } catch (error)
+        {
+            logger.info(
+                "Failed to parse response to " + path + " : " + response.body
+            );
             throw error;
-        } 
+        }
 
         if (!lastToken)
         {
@@ -197,7 +248,12 @@ export async function * requestPaged(method: string, path: string, limit:number|
     }
 }
 
-function requestRefresh(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined) : Promise<Tokens>
+function requestRefresh(
+    method: string,
+    path: string,
+    isCached: boolean = false,
+    body: object | undefined = undefined
+): Promise<Tokens>
 {
     if (isOffline)
     {
@@ -209,8 +265,13 @@ function requestRefresh(method: string, path: string, isCached: boolean = false,
         headers = { ...headers, Authorization: "Bearer " + refreshString };
     }
 
-    return rp({url: currentEndpoint + path, method, headers, body:JSON.stringify(body), rejectUnauthorized})
-    .then((response:string) => JSON.parse(response));
+    return rp({
+        url: currentEndpoint + path,
+        method,
+        headers,
+        body: JSON.stringify(body),
+        rejectUnauthorized,
+    }).then((response: string) => JSON.parse(response));
 }
 
 function updateTokens()
@@ -221,58 +282,66 @@ function updateTokens()
         return refreshPromise;
     }
 
-    if (!accessToken || accessToken.exp - (new Date().getTime() / 1000) < 15)
+    if (!accessToken || accessToken.exp - new Date().getTime() / 1000 < 15)
     {
         logger.info("Requiring refresh");
-        refreshPromise = Sessions.refreshSession().then(() => refreshPromise = undefined);
+        refreshPromise = Sessions.refreshSession().then(
+            () => (refreshPromise = undefined)
+        );
 
         return refreshPromise;
-    }
-    else
+    } else
     {
         logger.info("Access token valid");
         return Promise.resolve();
     }
 }
 
-export const Sessions =
-{
-    ensureLoggedIn: () => new Promise((resolve, reject) =>
-    {        
-        if (!accessToken && !refreshString)
+export const Sessions = {
+    ensureLoggedIn: () =>
+        new Promise((resolve, reject) =>
         {
-            reject(new Error("Not logged in"));
-        }
-        else
-        {
-            updateTokens()
-                .then(() => !!accessToken ? resolve() : reject(new Error("Not logged in")))
-                .catch(reject);
-        }
-    }),
+            if (!accessToken && !refreshString)
+            {
+                reject(new Error("Not logged in"));
+            } else
+            {
+                updateTokens()
+                    .then(() =>
+                        !!accessToken ? resolve() : reject(new Error("Not logged in"))
+                    )
+                    .catch(reject);
+            }
+        }),
 
-    getUserId: () => (!!accessToken && accessToken.UserId),
-    getVerified: () => (!!accessToken && (accessToken.is_verified || accessToken.is_verified === "True")),
-    getUsername: () => (!!accessToken && accessToken.Username),
-    getSupporter: () => Sessions.getPolicy('supporter'),
-    getPolicy: (policy: string) => (!!accessToken && accessToken.Policy.some((item: string) => item === policy)),
+    getUserId: () => !!accessToken && accessToken.UserId,
+    getVerified: () =>
+        !!accessToken &&
+        (accessToken.is_verified || accessToken.is_verified === "True"),
+    getUsername: () => !!accessToken && accessToken.Username,
+    getSupporter: () => Sessions.getPolicy("supporter"),
+    getPolicy: (policy: string) =>
+        !!accessToken && accessToken.Policy.some((item: string) => item === policy),
     getPolicies: () => !!accessToken && accessToken.Policy,
 
     connectToCookies(providedCookies: any)
     {
         cookies = providedCookies;
 
-        Sessions.setLocalTokens(
-            {
-                refresh_token: cookies.get("refresh_token"),
-                access_token: cookies.get("access_token"),
-                identity_token: cookies.get("identity_token"),
-            });
+        Sessions.setLocalTokens({
+            refresh_token: cookies.get("refresh_token"),
+            access_token: cookies.get("access_token"),
+            identity_token: cookies.get("identity_token"),
+        });
     },
 
     getLocalTokens: () =>
     {
-        return { access_token: accessString, refresh_token: refreshString, identity_token: identityString };
+        return {
+            access_token: accessString,
+            refresh_token: refreshString,
+            identity_token: identityString,
+        };
     },
 
     setLocalTokens: (tokens: Tokens) =>
@@ -287,23 +356,23 @@ export const Sessions =
 
             accessToken = jwt.decode(accessString);
 
-            cookies && cookies.set("access_token", accessString, { path: '/' });
+            cookies && cookies.set("access_token", accessString, { path: "/" });
         }
 
         if (!!tokens.refresh_token && refreshString != tokens.refresh_token)
-        {            
+        {
             refreshString = tokens.refresh_token;
 
             refreshToken = jwt.decode(refreshString);
         }
 
         if (!!tokens.identity_token && identityString != tokens.identity_token)
-        {            
+        {
             identityString = tokens.identity_token;
 
             identityToken = jwt.decode(identityString);
 
-            cookies && cookies.set("identity_token", identityString, { path: '/' });
+            cookies && cookies.set("identity_token", identityString, { path: "/" });
         }
     },
 
@@ -313,9 +382,9 @@ export const Sessions =
 
         if (!!cookies)
         {
-            cookies.remove("refresh_token", { path: '/' });
-            cookies.remove("access_token", { path: '/' });
-            cookies.remove("identity_token", { path: '/' });
+            cookies.remove("refresh_token", { path: "/" });
+            cookies.remove("access_token", { path: "/" });
+            cookies.remove("identity_token", { path: "/" });
         }
 
         identityString = undefined;
@@ -326,18 +395,59 @@ export const Sessions =
         accessToken = undefined;
     },
 
-    loginOffline : (username: string) =>
+    loginOffline: (username: string) =>
     {
         logger.info("Login offline " + username);
 
-        var refresh = {"UserId":"0","role":"Refresh","exp":9999999999,"iss":"AltaWebAPI","aud":"AltaClient"}
-        var access = {"UserId":"0","Username":"OFFLINE " + username,"role":"Access","is_verified":"True","is_member":"True","Policy":["offline", "database_admin","admin_vr_modes","debug_features","game_access_development","play_offline","server_access_development","server_owner","game_access_public","server_access_pre_alpha","server_access_tutorial","server_create_development","game_access_testing","reuse_refresh_tokens","server_access_testing"],"exp":9999999999,"iss":"AltaWebAPI","aud":"AltaClient"}
-        var identity = {"UserId":"0","Username":"OFFLINE " + username,"role":"Identity","is_member":"True","is_dev":"True","exp":9999999999,"iss":"AltaWebAPI","aud":"AltaClient"}
-    
-        Sessions.setLocalTokens({ 
-            refresh_token : jwt.sign(refresh, "offline"),
-            access_token : jwt.sign(access, "offline"),
-            identity_token : jwt.sign(identity, "offline") 
+        var refresh = {
+            UserId: "0",
+            role: "Refresh",
+            exp: 9999999999,
+            iss: "AltaWebAPI",
+            aud: "AltaClient",
+        };
+        var access = {
+            UserId: "0",
+            Username: "OFFLINE " + username,
+            role: "Access",
+            is_verified: "True",
+            is_member: "True",
+            Policy: [
+                "offline",
+                "database_admin",
+                "admin_vr_modes",
+                "debug_features",
+                "game_access_development",
+                "play_offline",
+                "server_access_development",
+                "server_owner",
+                "game_access_public",
+                "server_access_pre_alpha",
+                "server_access_tutorial",
+                "server_create_development",
+                "game_access_testing",
+                "reuse_refresh_tokens",
+                "server_access_testing",
+            ],
+            exp: 9999999999,
+            iss: "AltaWebAPI",
+            aud: "AltaClient",
+        };
+        var identity = {
+            UserId: "0",
+            Username: "OFFLINE " + username,
+            role: "Identity",
+            is_member: "True",
+            is_dev: "True",
+            exp: 9999999999,
+            iss: "AltaWebAPI",
+            aud: "AltaClient",
+        };
+
+        Sessions.setLocalTokens({
+            refresh_token: jwt.sign(refresh, "offline"),
+            access_token: jwt.sign(access, "offline"),
+            identity_token: jwt.sign(identity, "offline"),
         });
 
         return Promise.resolve();
@@ -345,7 +455,7 @@ export const Sessions =
 
     hashPassword: (password: string) =>
     {
-        return sha512(password).toString();  
+        return sha512(password).toString();
     },
 
     loginWithUsername: (username: string, passwordHash: string) =>
@@ -357,18 +467,21 @@ export const Sessions =
             return Sessions.loginOffline(username);
         }
 
-        return requestNoLogin('POST', 'sessions', false, { username, password_hash: passwordHash })
-            .then((result:Tokens) => Sessions.setLocalTokens(result))
-            .catch(error =>
+        return requestNoLogin("POST", "sessions", false, {
+            username,
+            password_hash: passwordHash,
+        })
+            .then((result: Tokens) => Sessions.setLocalTokens(result))
+            .catch((error) =>
             {
-               logger.info("Error logging in");
-               logger.info(JSON.stringify(headers));
-               
-               throw error;
+                logger.info("Error logging in");
+                logger.info(JSON.stringify(headers));
+
+                throw error;
             });
     },
 
-    loginWithEmail: (email: string, passwordHash: string) => 
+    loginWithEmail: (email: string, passwordHash: string) =>
     {
         logger.info("Login with email");
 
@@ -377,20 +490,23 @@ export const Sessions =
             return Sessions.loginOffline(email);
         }
 
-        return requestNoLogin('POST', 'sessions/email', false, { email, password_hash: passwordHash })
-            .then((result:Tokens) => Sessions.setLocalTokens(result))
-            .catch(error =>
+        return requestNoLogin("POST", "sessions/email", false, {
+            email,
+            password_hash: passwordHash,
+        })
+            .then((result: Tokens) => Sessions.setLocalTokens(result))
+            .catch((error) =>
             {
-               logger.info("Error logging in");
-               logger.info(JSON.stringify(headers));
-               
-               throw error;
+                logger.info("Error logging in");
+                logger.info(JSON.stringify(headers));
+
+                throw error;
             });
     },
 
     loginWithRefreshToken: (refreshToken: string) =>
     {
-        if (!refreshToken || refreshToken.includes('\u0000'))
+        if (!refreshToken || refreshToken.includes("\u0000"))
         {
             throw new Error("Invalid refresh token");
         }
@@ -420,17 +536,16 @@ export const Sessions =
                     fs.mkdirSync(appdata, { recursive: true });
                 }
 
-                var rememberPath = path.join(appdata, '.rememberme');
+                var rememberPath = path.join(appdata, ".rememberme");
 
                 if (fs.existsSync(rememberPath))
                 {
-                    var content = fs.readFileSync(rememberPath, 'utf8');
+                    var content = fs.readFileSync(rememberPath, "utf8");
 
                     return Sessions.loginWithRefreshToken(content);
                 }
             }
-        }
-        catch (error)
+        } catch (error)
         {
             console.error("Error while checking remembered. See below.");
             console.error(error);
@@ -439,11 +554,11 @@ export const Sessions =
         return Promise.resolve();
     },
 
-    remember : () =>
+    remember: () =>
     {
         logger.info("Remember");
 
-        cookies && cookies.set("refresh_token", refreshString, { path: '/' });
+        cookies && cookies.set("refresh_token", refreshString, { path: "/" });
 
         if (hasFs)
         {
@@ -452,22 +567,22 @@ export const Sessions =
                 fs.mkdirSync(appdata, { recursive: true });
             }
 
-            var rememberPath = path.join(appdata, '.rememberme');
+            var rememberPath = path.join(appdata, ".rememberme");
 
-            fs.writeFileSync(rememberPath, refreshString, 'utf8');
+            fs.writeFileSync(rememberPath, refreshString, "utf8");
         }
     },
 
-    forget : () =>
+    forget: () =>
     {
         logger.info("Forget");
 
         if (!!cookies)
         {
-            cookies.remove("refresh_token", { path: '/' });
+            cookies.remove("refresh_token", { path: "/" });
         }
 
-        var rememberPath = path.join(appdata, '.rememberme');
+        var rememberPath = path.join(appdata, ".rememberme");
 
         if (hasFs && fs.existsSync(rememberPath))
         {
@@ -479,315 +594,420 @@ export const Sessions =
     {
         logger.info("Refreshing session");
 
-        return requestRefresh('PUT', 'sessions', false, {})
-            .then((result:Tokens) => Sessions.setLocalTokens(result))
+        return requestRefresh("PUT", "sessions", false, {}).then((result: Tokens) =>
+            Sessions.setLocalTokens(result)
+        );
     },
+};
+
+export enum BanType
+{
+    Server,
+    Global,
+    Public,
 }
 
-export const Launcher =
+export enum BanMethod
 {
+    UserId = 1 << 0,
+    IpAddress = 1 << 1,
+    DeviceId = 1 << 2,
+}
+
+export const Bans = {
+    createBan: (
+        user_id: number,
+        duration_hours: number,
+        type: BanType,
+        method: BanMethod,
+        reason: string,
+        servers: number[] | undefined
+    ) =>
+    {
+        logger.info(`Creating ban ${user_id}`);
+
+        return request("POST", "bans", false, {
+            user_id,
+            duration_hours,
+            type,
+            method,
+            reason,
+            servers,
+        });
+    },
+
+    deleteBan: (banId: number) =>
+    {
+        logger.info(`Delete ban by ID`);
+
+        return request("DELETE", `bans/${banId}`);
+    },
+
+    getBan: (banId: number) =>
+    {
+        logger.info(`Get ban by ID`);
+
+        return request("GET", `bans/${banId}`);
+    },
+
+    getAll: () =>
+    {
+        logger.info(`Get all banned`);
+
+        return request("GET", `bans`);
+    },
+
+    getModBans: (modId: number) =>
+    {
+        logger.info(`Get bans from ${modId}`);
+
+        return request("GET", `bans/creator/${modId}`);
+    },
+
+    getUserBans: (userId: number) =>
+    {
+        logger.info(`Get bans for ${userId}`);
+
+        return request("GET", `bans/user/${userId}`);
+    },
+};
+
+export const Launcher = {
     getGames: () =>
     {
         logger.info("Get games");
 
-        return request('GET', 'launcher/games');
+        return request("GET", "launcher/games");
     },
 
     getGameInfo: (gameId: number) =>
     {
         logger.info("Get game info");
 
-        return request('GET', `launcher/games/${gameId}`);
+        return request("GET", `launcher/games/${gameId}`);
     },
-}
+};
 
 export enum GroupType
 {
     Open,
     Public,
-    Private
+    Private,
 }
 
-export const Groups =
-{
-    Member : 1,
-    Moderator : 2,
-    Admin : 4,
+export const Groups = {
+    Member: 1,
+    Moderator: 2,
+    Admin: 4,
 
-    MemberUp : 7,
-    ModeratorUp : 6,
+    MemberUp: 7,
+    ModeratorUp: 6,
     /*
-    Member 1,
-    Moderator 2,
-    Admin 4
-    */
+      Member 1,
+      Moderator 2,
+      Admin 4
+      */
 
-    Open : 0,
-    Public : 1,
-    Private : 2,
+    Open: 0,
+    Public: 1,
+    Private: 2,
 
-    getJoined : () =>
+    getJoined: () =>
     {
         logger.info("Get joined groups");
 
         return requestPaged('GET', 'groups/joined');
     },
-    
-    getVisible : (type:GroupType, ignoreInactive:boolean = false) =>
+
+    getVisible: (type: GroupType, ignoreInactive: boolean = false) =>
     {
         logger.info("Get visible groups");
 
-        return requestPaged('GET', `groups?type=${type}${ignoreInactive==undefined ? '' : '&ignoreInactive=' + ignoreInactive}`);
+        return requestPaged('GET', `groups?type=${type}${ignoreInactive == undefined ? '' : '&ignoreInactive=' + ignoreInactive}`);
     },
-    
-    getInvited : () =>
+
+    getInvited: () =>
     {
         logger.info("Get invited to groups");
 
-        return requestPaged('GET', 'groups/invites');
+        return requestPaged("GET", "groups/invites");
     },
-    
-    getRequested : () =>
+
+    getRequested: () =>
     {
         logger.info("Get requested groups");
 
-        return requestPaged('GET', 'groups/requested');
+        return requestPaged("GET", "groups/requested");
     },
-    
-    createGroup : (name:string, description:string) =>
+
+    createGroup: (name: string, description: string) =>
     {
         logger.info("Create group");
 
-        return request('POST', 'groups', false,
-        {
+        return request("POST", "groups", false, {
             type: Groups.Private,
             description,
             Name: name,
             invite_permissions: Groups.ModeratorUp,
             kick_permissions: Groups.ModeratorUp,
             accept_member_permissions: Groups.ModeratorUp,
-            create_server_permissions: Groups.Admin
+            create_server_permissions: Groups.Admin,
         });
     },
-    
-    getGroupInfo : (groupId:number|string) =>
+
+    getGroupInfo: (groupId: number | string) =>
     {
         logger.info(`Get group info ${groupId}`);
 
-        return request('GET', `groups/${groupId}`);
+        return request("GET", `groups/${groupId}`);
     },
 
-    editGroupInfo : (groupId:number|string, groupInfo:{name:string|undefined, description:string|undefined, groupType:GroupType|undefined}) =>
+    editGroupInfo: (
+        groupId: number | string,
+        groupInfo: {
+            name: string | undefined;
+            description: string | undefined;
+            groupType: GroupType | undefined;
+        }
+    ) =>
     {
         logger.info(`Patch group info ${groupId}`);
 
-        return request('PATCH', `groups/${groupId}`, false, groupInfo);
+        return request("PATCH", `groups/${groupId}`, false, groupInfo);
     },
 
-    editGroupRole : (groupId:number|string, roleId:number|string, newInfo:{name:string|undefined, color:string|undefined, permissions:string[]|undefined}) =>
+    editGroupRole: (groupId: number | string, roleId: number | string, newInfo: { name: string | undefined, color: string | undefined, permissions: string[] | undefined }) =>
     {
         logger.info(`Patch group role ${groupId} ${roleId}`);
 
         return request('PATCH', `groups/${groupId}/roles/${roleId}`, false, newInfo);
     },
-    
-    getMembers : (groupId:number|string) =>
+
+    getMembers: (groupId: number | string) =>
     {
         logger.info(`Get members ${groupId}`);
 
-        return requestPaged('GET', `groups/${groupId}/members`);
+        return requestPaged("GET", `groups/${groupId}/members`);
     },
-        
-    getBans : (groupId:number|string) =>
+
+    getBans: (groupId: number | string) =>
     {
         logger.info(`Get banned ${groupId}`);
 
-        return requestPaged('GET', `groups/${groupId}/bans`);
+        return requestPaged("GET", `groups/${groupId}/bans`);
     },
-        
-    banUser : (groupId:number|string, userId:number|string) =>
+
+    banUser: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Ban user ${groupId} ${userId}`);
 
-        return request('POST', `groups/${groupId}/bans/${userId}`);
+        return request("POST", `groups/${groupId}/bans/${userId}`);
     },
-        
-    unbanUser : (groupId:number|string, userId:number|string) =>
+
+    unbanUser: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Unban user ${groupId} ${userId}`);
 
-        return request('DELETE', `groups/${groupId}/bans/${userId}`);
+        return request("DELETE", `groups/${groupId}/bans/${userId}`);
     },
-    
-    getMemberInfo : (groupId:number|string, userId:number|string) =>
+
+    getMemberInfo: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Get member permissions ${groupId} ${userId}`);
 
-        return request('GET', `groups/${groupId}/members/${userId}`);
+        return request("GET", `groups/${groupId}/members/${userId}`);
     },
-    
-    getJoinRequests : (groupId:number|string) =>
+
+    getJoinRequests: (groupId: number | string) =>
     {
         logger.info(`Get join requests ${groupId}`);
 
-        return requestPaged('GET', `groups/${groupId}/requests`);
+        return requestPaged("GET", `groups/${groupId}/requests`);
     },
-    
-    getOutgoingInvites : (groupId:number|string) =>
+
+    getOutgoingInvites: (groupId: number | string) =>
     {
         logger.info(`Get outgoing invites ${groupId}`);
 
-        return requestPaged('GET', `groups/${groupId}/invites`);
+        return requestPaged("GET", `groups/${groupId}/invites`);
     },
-    
-    requestJoin : (groupId:number|string) =>
+
+    requestJoin: (groupId: number | string) =>
     {
         logger.info(`Request join ${groupId}`);
 
-        return request('POST', `groups/${groupId}/requests`);
+        return request("POST", `groups/${groupId}/requests`);
     },
-    
-    revokeRequest : (groupId:number|string) =>
+
+    revokeRequest: (groupId: number | string) =>
     {
         logger.info(`Revoke request ${groupId}`);
 
-        return request('DELETE', `groups/${groupId}/requests`);
+        return request("DELETE", `groups/${groupId}/requests`);
     },
-    
-    acceptInvite : (groupId:number|string) =>
+
+    acceptInvite: (groupId: number | string) =>
     {
         logger.info(`Accept invite ${groupId}`);
 
-        return request('POST', `groups/invites/${groupId}`);
+        return request("POST", `groups/invites/${groupId}`);
     },
-    
-    rejectInvite : (groupId:number|string) =>
+
+    rejectInvite: (groupId: number | string) =>
     {
         logger.info(`Reject invite ${groupId}`);
 
-        return request('DELETE', `groups/invites/${groupId}`);
+        return request("DELETE", `groups/invites/${groupId}`);
     },
-    
-    leave : (groupId:number|string) =>
+
+    leave: (groupId: number | string) =>
     {
         logger.info(`Leave ${groupId}`);
 
-        return request('DELETE', `groups/${groupId}/members`);
+        return request("DELETE", `groups/${groupId}/members`);
     },
-    
-    inviteMember : (groupId:number|string, userId:number|string) =>
+
+    inviteMember: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Invite member ${groupId} ${userId}`);
 
-        return request('POST', `groups/${groupId}/invites/${userId}`);
+        return request("POST", `groups/${groupId}/invites/${userId}`);
     },
-    
-    revokeInvite : (groupId:number|string, userId:number|string) =>
+
+    revokeInvite: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Revoke invite ${groupId} ${userId}`);
 
-        return request('DELETE', `groups/${groupId}/invites/${userId}`);
+        return request("DELETE", `groups/${groupId}/invites/${userId}`);
     },
-    
-    acceptRequest : (groupId:number|string, userId:number|string) =>
+
+    acceptRequest: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Accept request ${groupId} ${userId}`);
 
-        return request('PUT', `groups/${groupId}/requests/${userId}`);
+        return request("PUT", `groups/${groupId}/requests/${userId}`);
     },
-    
-    rejectRequest : (groupId:number|string, userId:number|string) =>
+
+    rejectRequest: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Reject request ${groupId} ${userId}`);
 
-        return request('DELETE', `groups/${groupId}/requests/${userId}`);
+        return request("DELETE", `groups/${groupId}/requests/${userId}`);
     },
-    
-    kickMember : (groupId:number|string, userId:number|string) =>
+
+    kickMember: (groupId: number | string, userId: number | string) =>
     {
         logger.info(`Invite member ${groupId} ${userId}`);
 
-        return request('DELETE', `groups/${groupId}/members/${userId}`);
+        return request("DELETE", `groups/${groupId}/members/${userId}`);
     },
-    
+
     //OBSOLETE
-    editPermissions : (groupId:number|string, userId:number|string, permissions:number) =>
+    editPermissions: (
+        groupId: number | string,
+        userId: number | string,
+        permissions: number
+    ) =>
     {
         logger.info(`Edit member permissions ${groupId} ${userId}`);
 
-        return request('POST', `groups/${groupId}/members/${userId}/permissions`, false, 
-        {
-            permissions
-        });
+        return request(
+            "POST",
+            `groups/${groupId}/members/${userId}/permissions`,
+            false,
+            {
+                permissions,
+            }
+        );
     },
 
-    setMemberRole : (groupId:number|string, userId:number|string, roleId:number|string) =>
+    setMemberRole: (
+        groupId: number | string,
+        userId: number | string,
+        roleId: number | string
+    ) =>
     {
         logger.info(`Edit member role ${groupId} ${userId} ${roleId}`);
 
-        return request('POST', `groups/${groupId}/members/${userId}/role/${roleId}`);
+        return request(
+            "POST",
+            `groups/${groupId}/members/${userId}/role/${roleId}`
+        );
     },
-   
-    createServer : (groupId:number|string, name:string, description:string, region:string) =>
+
+    createServer: (
+        groupId: number | string,
+        name: string,
+        description: string,
+        region: string
+    ) =>
     {
         logger.info(`Create server ${groupId} ${name}`);
-        
-        return request('POST', `groups/${groupId}/servers`, false, 
-        {
+
+        return request("POST", `groups/${groupId}/servers`, false, {
             name,
             description,
-            region
+            region,
         });
-    }
-}
-
-export const Security =
-{
-    sso : () =>
-    {
-        return request('GET', 'Security/sso');
     },
-}
+};
 
-export const Analytics =
-{
-    sendInstallation : (type:string, version_from:string|undefined, version_to:string, error:string|undefined, start_id:number|undefined) =>
+export const Security = {
+    sso: () =>
     {
-        return request('POST', 'analytics/installation', false, { type, version_from, version_to, error, start_id });
-    }
-}
+        return request("GET", "Security/sso");
+    },
+};
 
-export const Friends =
-{
-    getUserFriends : (userId: number|string) =>
+export const Analytics = {
+    sendInstallation: (
+        type: string,
+        version_from: string | undefined,
+        version_to: string,
+        error: string | undefined,
+        start_id: number | undefined
+    ) =>
+    {
+        return request("POST", "analytics/installation", false, {
+            type,
+            version_from,
+            version_to,
+            error,
+            start_id,
+        });
+    },
+};
+
+export const Friends = {
+    getUserFriends: (userId: number | string) =>
     {
         logger.info("Get user friends");
 
-        return requestPaged('GET', `friends/${userId}`);
+        return requestPaged("GET", `friends/${userId}`);
     },
-    
-    getFriends : () =>
+
+    getFriends: () =>
     {
         logger.info("Get friends");
 
-        return requestPaged('GET', 'friends', 10);
+        return requestPaged("GET", "friends", 10);
     },
-    
-    getOutgoingRequests : () =>
+
+    getOutgoingRequests: () =>
     {
         logger.info("Get outgoing friend requests");
 
-        return requestPaged('GET', 'friends/requests/sent');
+        return requestPaged("GET", "friends/requests/sent");
     },
-    
-    getFriendRequests : () =>
+
+    getFriendRequests: () =>
     {
         logger.info("Get friend requests");
 
-        return requestPaged('GET', 'friends/requests');
+        return requestPaged("GET", "friends/requests");
     },
-    
-    acceptFriendRequest : (userId : number|string) =>
+
+    acceptFriendRequest: (userId: number | string) =>
     {
         logger.info("Accept friend request");
 
@@ -795,58 +1015,67 @@ export const Friends =
 
         return Friends.addFriend(userId);
     },
-    
-    addFriend : (userId : number|string) =>
+
+    addFriend: (userId: number | string) =>
     {
         logger.info("Add friend");
 
-        return request('POST', `friends/${userId}`);
+        return request("POST", `friends/${userId}`);
     },
-    
-    revokeFriendRequest : (userId : number|string) =>
+
+    revokeFriendRequest: (userId: number | string) =>
     {
         logger.info("Revoke friend request");
 
         return Friends.removeFriend(userId);
     },
-    
-    rejectFriendRequest : (userId : number|string) =>
+
+    rejectFriendRequest: (userId: number | string) =>
     {
         logger.info("Reject friend request");
 
         return Friends.removeFriend(userId);
     },
-    
-    removeFriend : (userId : number|string) =>
+
+    removeFriend: (userId: number | string) =>
     {
         logger.info("Remove friend");
 
-        return request('DELETE', `friends/${userId}`);
-    }
-}
+        return request("DELETE", `friends/${userId}`);
+    },
+};
 
-export const Users =
-{
-    getInfo: (userId: number) =>
+export const Users = {
+    getInfo: memoizee((userId: number) =>
     {
         logger.info("Get user " + userId);
 
-        return request('GET', `users/${userId}`);
-    },
+        return request("GET", `users/${userId}`);
+    }),
 
-    register: (username: string, passwordHash: string, email: string, referral: string | undefined = undefined) =>
+    register: (
+        username: string,
+        passwordHash: string,
+        email: string,
+        referral: string | undefined = undefined
+    ) =>
     {
         logger.info("Register " + username);
 
-        return requestNoLogin('POST', 'users', false, { username, password_hash: passwordHash, email, referral });
+        return requestNoLogin("POST", "users", false, {
+            username,
+            password_hash: passwordHash,
+            email,
+            referral,
+        });
     },
 
     getVerified: () =>
     {
         logger.info("Get verified");
 
-        return request('GET', `users/${accessToken.UserId}/verification`)
-            .then((result:boolean) =>
+        return request("GET", `users/${accessToken.UserId}/verification`).then(
+            (result: boolean) =>
             {
                 if (result)
                 {
@@ -854,181 +1083,208 @@ export const Users =
                 }
 
                 return result;
-            });
+            }
+        );
     },
 
     requestVerificationEmail: (email: string) =>
     {
         logger.info("Request verification");
 
-        return request('PUT', `users/${accessToken.UserId}/verification`, false, { email });
+        return request("PUT", `users/${accessToken.UserId}/verification`, false, {
+            email,
+        });
     },
 
-    verify: (userId:number, token: string) =>
+    verify: (userId: number, token: string) =>
     {
         logger.info("Verify");
 
-        return requestNoLogin('POST', `users/${userId}/verification`, false, { verification_token: token });
+        return requestNoLogin("POST", `users/${userId}/verification`, false, {
+            verification_token: token,
+        });
     },
 
-    changeUsername: (username : string, passHash: string) =>
+    changeUsername: (username: string, passHash: string) =>
     {
         logger.info("Change username");
 
-        return request(`PUT`, `users/me/username`, false, { new_username: username, password_hash: passHash });
+        return request(`PUT`, `users/me/username`, false, {
+            new_username: username,
+            password_hash: passHash,
+        });
     },
 
     changePassword: (oldHash: string, newHash: string) =>
     {
         logger.info("Change password");
 
-        return request('PUT', `users/${accessToken.UserId}/password`, false, { old_password_hash: oldHash, new_password_hash: newHash });
+        return request("PUT", `users/${accessToken.UserId}/password`, false, {
+            old_password_hash: oldHash,
+            new_password_hash: newHash,
+        });
     },
 
     resetPassword: (userId: number, newHash: string, token: string) =>
     {
         logger.info("Reset password " + userId);
 
-        return requestNoLogin('POST', `users/${userId}/password`, false, { reset_token: token, new_password_hash: newHash });
+        return requestNoLogin("POST", `users/${userId}/password`, false, {
+            reset_token: token,
+            new_password_hash: newHash,
+        });
     },
 
-    findUserByUsername : (username : string) =>
+    findUserByUsername: (username: string) =>
     {
         logger.info("Find user with username " + username);
 
-        return request('POST', `users/search/username`, false, { username });
+        return request("POST", `users/search/username`, false, { username });
     },
-    
-    getStatistics : (userId : Number) =>
+
+    getStatistics: (userId: Number) =>
     {
         logger.info("Getting Users statistics id: " + userId);
 
-        return request('GET', `users/${userId}/statistics`);
+        return request("GET", `users/${userId}/statistics`);
     },
-}
+};
 
-export const Meta =
-{
+export const Meta = {
     //No applicable methods
-}
+};
 
-export const Servers =
-{
+export const Servers = {
+    getAll: memoizee(() =>
+    {
+        logger.info("Getting all servers");
+
+        return request("GET", `servers`);
+    }),
+
     getRegions: () =>
     {
         logger.info("Get regions");
 
-        return requestNoLogin('GET', `servers/regions`);
+        return requestNoLogin("GET", `servers/regions`);
     },
 
     getConsoleServers: () =>
     {
         logger.info("Getting console servers");
 
-        return request('GET', 'servers/console');
+        return request("GET", "servers/console");
     },
 
     getFavorites: () =>
     {
         logger.info("Getting favorite servers");
 
-        return request('GET', 'servers/favorites');
+        return request("GET", "servers/favorites");
     },
 
-    addFavorite: (serverId:number|string) =>
+    addFavorite: (serverId: number | string) =>
     {
         logger.info(`Add favorite server ${serverId}`);
 
-        return request('POST', `servers/favorites/${serverId}`);
+        return request("POST", `servers/favorites/${serverId}`);
     },
 
-    removeFavorite: (serverId:number|string) =>
+    removeFavorite: (serverId: number | string) =>
     {
         logger.info(`Add favorite server ${serverId}`);
 
-        return request('DELETE', `servers/favorites/${serverId}`);
+        return request("DELETE", `servers/favorites/${serverId}`);
     },
 
     getRunning: () =>
     {
         logger.info("Getting running servers");
 
-        return request('GET', 'servers/running');
+        return request("GET", "servers/running");
     },
 
     getOnline: () =>
     {
         logger.info("Getting visible servers");
 
-        return request('GET', 'servers/online');
+        return request("GET", "servers/online");
     },
 
     getPublic: () =>
     {
         logger.info("Getting public servers");
 
-        return request('GET', 'servers/public');
+        return request("GET", "servers/public");
     },
 
     getJoined: () =>
     {
         logger.info("Getting joined servers");
 
-        return request('GET', 'servers/joined');
+        return request("GET", "servers/joined");
     },
 
     getOpen: () =>
     {
         logger.info("Getting open servers");
 
-        return request('GET', 'servers/open');
+        return request("GET", "servers/open");
     },
 
-    getDetails: (serverId:number|string) =>
+    getDetails: (serverId: number | string) =>
     {
         logger.info(`Getting server details ${serverId}`);
 
-        return request('GET', `servers/${serverId}`);
+        return request("GET", `servers/${serverId}`);
     },
 
     getControllable: () =>
     {
         logger.info(`Getting controllable`);
 
-        return request('GET', `servers/control`);
+        return request("GET", `servers/control`);
     },
 
-    joinConsole: (id:number|string, should_launch:boolean = false, ignore_offline:boolean = false) =>
+    joinConsole: (
+        id: number | string,
+        should_launch: boolean = false,
+        ignore_offline: boolean = false
+    ) =>
     {
         logger.info(`Join console ${id}`);
 
-        return request('POST', `servers/${id}/console`, false, { should_launch, ignore_offline });
-    }
-}
+        return request("POST", `servers/${id}/console`, false, {
+            should_launch,
+            ignore_offline,
+        });
+    },
+};
 
-export const Services =
-{
+export const Services = {
     resetPassword: (email: string) =>
     {
         logger.info("Reset password");
 
-        return requestNoLogin('POST', `services/reset-password`, false, { email });
+        return requestNoLogin("POST", `services/reset-password`, false, { email });
     },
 
     getTemporaryIdentity: (data: any) =>
     {
         logger.info("Get temp ID");
 
-        return request('POST', 'services/identity-token', false, { user_data: data });
-    }
-}
+        return request("POST", "services/identity-token", false, {
+            user_data: data,
+        });
+    },
+};
 
 export enum UserReportStatus
 {
     Unprocessed = 1 << 0,
     AwaitingReply = 1 << 1,
     Resolved = 1 << 2,
-    Rejected = 1 << 3
+    Rejected = 1 << 3,
 }
 
 export enum UserReportType
@@ -1038,76 +1294,119 @@ export enum UserReportType
     TempBan,
     PermaBan,
     Warning,
-    Note
+    Note,
 }
 
-export type UserReport =
-{
-    topic_user : number;
-    assignee : number;
-    incident_date:Date;
-    type:UserReportType;
-    status:UserReportStatus;
-    linked_reports:{name:string, report_id:number}[];
-    title:string;
-    comments:{user_id:number, comment:string, timestamp: Date};
-}
+export type UserReport = {
+    topic_user: number;
+    assignee: number;
+    incident_date: Date;
+    type: UserReportType;
+    status: UserReportStatus;
+    linked_reports: { name: string; report_id: number }[];
+    title: string;
+    comments: { user_id: number; comment: string; timestamp: Date };
+};
 
-export const UserReports =
-{
-    getUserReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
+export const UserReports = {
+    getUserReports: (
+        status: UserReportStatus,
+        user_ids: number[] | undefined = undefined
+    ) =>
     {
         logger.info("Get user reports");
-        
-        return requestPaged('GET', `userReports?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
-    },
-    
-    getTopicReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
-    {
-        logger.info("Get topic reports");
-        
-        return requestPaged('GET', `userReports/topic?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
-    },
-    
-    getAssigneeReports: ( status:UserReportStatus, user_ids:number[]|undefined = undefined) =>
-    {
-        logger.info("Get assignee reports");
-        
-        return requestPaged('GET', `userReports/assignee?status=${status}${!user_ids ? '' : `&user_ids=${user_ids.join()}`}`);
+
+        return requestPaged(
+            "GET",
+            `userReports?status=${status}${
+            !user_ids ? "" : `&user_ids=${user_ids.join()}`
+            }`
+        );
     },
 
-    submitReport: ( report:UserReport ) =>
+    getTopicReports: (
+        status: UserReportStatus,
+        user_ids: number[] | undefined = undefined
+    ) =>
+    {
+        logger.info("Get topic reports");
+
+        return requestPaged(
+            "GET",
+            `userReports/topic?status=${status}${
+            !user_ids ? "" : `&user_ids=${user_ids.join()}`
+            }`
+        );
+    },
+
+    getAssigneeReports: (
+        status: UserReportStatus,
+        user_ids: number[] | undefined = undefined
+    ) =>
+    {
+        logger.info("Get assignee reports");
+
+        return requestPaged(
+            "GET",
+            `userReports/assignee?status=${status}${
+            !user_ids ? "" : `&user_ids=${user_ids.join()}`
+            }`
+        );
+    },
+
+    submitReport: (report: UserReport) =>
     {
         logger.info("Submit report");
 
-        return request('POST', 'userReports', false, report);
-    }
-}
+        return request("POST", "userReports", false, report);
+    },
+};
 
-export const Shop =
-{
+export const Shop = {
     getSandbox: () =>
     {
         logger.info("Getting whether to use the sandbox");
 
-        return request('GET', 'shop/sandbox');
+        return request("GET", "shop/sandbox");
         // {
         //     "sandbox": true
         // }
     },
 
-    Account:
-    {
+    Rewards: {
+        getRewards: () =>
+        {
+            logger.info("Getting all rewards")
+
+            return request("GET", "api/rewards/all")
+        },
+
+        getUnclaimedRewards: () =>
+        {
+            logger.info("Getting unclaimed rewards")
+
+            return request("GET", "api/rewards/unclaimed")
+        },
+
+        claimReward: (rewardIdentifier: number) =>
+        {
+            logger.info(`Claiming reward with identifier: ${rewardIdentifier}`)
+
+            return request("POST", `api/rewards/${rewardIdentifier}`)
+        }
+    },
+
+    Account: {
         getProfile: () =>
         {
             logger.info("Getting profile");
 
-            return request('GET', 'shop/account');
+            return request("GET", "shop/account");
             // {
             //     "shard_balance": 0,
             //     "wallet_amount": 0,
             //     "wallet_currency": "string",
-            //     "subscription_status": 
+            //     "subscription_status":
             //      {
             //       "is_member": true,
             //       "member_end_date": "2019-01-31T03:48:29.902Z",
@@ -1120,13 +1419,13 @@ export const Shop =
         {
             logger.info("Getting payment methods");
 
-            return request('GET', 'shop/account/payments');
+            return request("GET", "shop/account/payments");
             // [
             //     {
             //       "type": "paypal",
             //       "id": 0,
             //       "name": "string",
-            //       "payment_system": 
+            //       "payment_system":
             //       {
             //         "id": 0,
             //         "name": "string"
@@ -1139,7 +1438,7 @@ export const Shop =
         {
             logger.info("Getting account items");
 
-            return request('GET', 'shop/account/items');
+            return request("GET", "shop/account/items");
             // [
             //     {
             //       "image_url": "string",
@@ -1156,12 +1455,13 @@ export const Shop =
 
         getRewards: () =>
         {
+            logger.info("[OBSOLETE]: Function Deprecated (Use getRewards from Rewards)")
             logger.info("Getting account rewards");
 
-            return request('GET', 'shop/account/rewards');
+            return request("GET", "shop/account/rewards");
             // {
             //     "comment": "string",
-            //     "rewards": 
+            //     "rewards":
             //      [
             //       {
             //         "type": "string",
@@ -1176,7 +1476,7 @@ export const Shop =
         {
             logger.info("Getting supporter status");
 
-            return request('GET', 'shop/account/subscription');
+            return request("GET", "shop/account/subscription");
             // {
             //     "id": 0,
             //     "plan": {
@@ -1243,40 +1543,37 @@ export const Shop =
 
         cancelSubscription: () =>
         {
-            return request('DELETE', 'shop/account/subscription');
+            return request("DELETE", "shop/account/subscription");
         },
     },
 
-    Debug:
-    {
+    Debug: {
         modifyBalance: (change: number) =>
         {
-            return request('POST', 'shop/debug/balance', false, { change });
+            return request("POST", "shop/debug/balance", false, { change });
         },
 
         deleteMembership: () =>
         {
-            return request('DELETE', 'shop/debug/membership');
+            return request("DELETE", "shop/debug/membership");
         },
 
         clearItems: () =>
         {
-            return request('DELETE', 'shop/debug/inventory');
+            return request("DELETE", "shop/debug/inventory");
         },
     },
 
-    Categories:
-    {
+    Categories: {
         //Unused
     },
 
-    Items:
-    {
+    Items: {
         getItems: () =>
         {
             logger.info("Get all items");
 
-            return request('GET', 'shop/items');
+            return request("GET", "shop/items");
             // [
             //     {
             //       "prices": {
@@ -1298,7 +1595,7 @@ export const Shop =
         {
             logger.info("Get item info");
 
-            return request('GET', `shop/items/${itemId}`);
+            return request("GET", `shop/items/${itemId}`);
             // {
             //     "item_code": "string",
             //     "name": {
@@ -1338,13 +1635,12 @@ export const Shop =
         }),
     },
 
-    Sets:
-    {
+    Sets: {
         getSet: memoizee((sku: string) =>
         {
             logger.info("Get set info");
 
-            return request('GET', `shop/sets/${sku}`);
+            return request("GET", `shop/sets/${sku}`);
             // {
             //     "sku": "string",
             //     "items": [
@@ -1357,35 +1653,35 @@ export const Shop =
         }),
     },
 
-    Transactions :
-    {
-        getStatus : (transactionId:string|number) =>
+    Transactions: {
+        getStatus: (transactionId: string | number) =>
         {
             logger.info("Get Transaction ID " + transactionId);
 
-            return request('GET', `shop/transactions/${transactionId}/status`);
+            return request("GET", `shop/transactions/${transactionId}/status`);
         },
     },
 
-    Purchase:
-    {
-        Shards:
-        {
+    Purchase: {
+        Shards: {
             buyItem: (itemId: number) =>
             {
                 logger.info("Purchase item");
 
-                return request('POST', 'shop/purchase/shards/items', false, {item_id:itemId});
+                return request("POST", "shop/purchase/shards/items", false, {
+                    item_id: itemId,
+                });
             },
         },
 
-        Premium:
-        {
+        Premium: {
             buyItem: (itemId: number) =>
             {
                 logger.info("Purchase premium item");
 
-                return request('POST', 'shop/purchase/premium/items', false, { item_id: itemId });
+                return request("POST", "shop/purchase/premium/items", false, {
+                    item_id: itemId,
+                });
                 // {
                 //     "token": "string"
                 // }
@@ -1395,57 +1691,63 @@ export const Shop =
             {
                 logger.info("Purchase subscription");
 
-                return request('POST', 'shop/purchase/premium/subscriptions', false, { plan_external_id: subscriptionId });
+                return request("POST", "shop/purchase/premium/subscriptions", false, {
+                    plan_external_id: subscriptionId,
+                });
                 // {
                 //     "token": "string"
                 // }
             },
 
-            buyShards : (shardsId:string|number, quantity:number) =>
+            buyShards: (shardsId: string | number, quantity: number) =>
             {
-                logger.info("Purchase currency "  + shardsId + " " + quantity);
+                logger.info("Purchase currency " + shardsId + " " + quantity);
 
-                return request('POST', 'shop/purchase/premium/shards', false, {shards_package_id:shardsId, quantity});
+                return request("POST", "shop/purchase/premium/shards", false, {
+                    shards_package_id: shardsId,
+                    quantity,
+                });
                 // {
                 //     "token": "string"
                 // }
             },
-            
-            buyCoupon : (shardsId:string|number, quantity:number) =>
-            {
-                logger.info("Purchase coupon "  + shardsId + " " + quantity);
 
-                return request('POST', 'shop/purchase/shards/coupons', false, {currency_package_id:shardsId, quantity});
+            buyCoupon: (shardsId: string | number, quantity: number) =>
+            {
+                logger.info("Purchase coupon " + shardsId + " " + quantity);
+
+                return request("POST", "shop/purchase/shards/coupons", false, {
+                    currency_package_id: shardsId,
+                    quantity,
+                });
                 // {
                 //     "transaction_id": number,
                 //     "token": "string",
                 // }
             },
-        }
+        },
     },
 
-    Coupons :
-    {
-        redeem : (coupon:String) =>
+    Coupons: {
+        redeem: (coupon: String) =>
         {
             logger.info("Redeem coupon");
 
-            return request('POST', 'shop/coupons/redeem', false, {coupon});
+            return request("POST", "shop/coupons/redeem", false, { coupon });
             // {
             //     "coupon_code": "SCHMEECHEE-245WC-FNV85-DNRXE-BYQYK",
             //     "virtual_currency_amount": 1000,
             //     "virtual_items": []
             // }
-        }
+        },
     },
 
-    Subscriptions:
-    {
+    Subscriptions: {
         getSubscriptions: () =>
         {
             logger.info("Get subscription options");
 
-            return requestNoLogin('GET', 'shop/subscriptions');
+            return requestNoLogin("GET", "shop/subscriptions");
             // [
             //     {
             //       "id": 0,
@@ -1497,13 +1799,12 @@ export const Shop =
         },
     },
 
-    Shards:
-    {
+    Shards: {
         getPackages: () =>
         {
             logger.info("Get currency packs");
 
-            return request('GET', 'shop/shards');
+            return request("GET", "shop/shards");
             // {
             //     "id": 0,
             //     "vc_name": {
@@ -1566,4 +1867,4 @@ export const Shop =
             // }
         },
     },
-}
+};
