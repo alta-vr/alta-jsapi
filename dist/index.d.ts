@@ -8,6 +8,9 @@ declare type Tokens = {
 };
 export declare function setVersion(version: string): void;
 export declare function setUserAgent(userAgent: string): void;
+export declare function requestNoLogin(method: string, path: string, isCached?: boolean, body?: object | undefined): Promise<any>;
+export declare function request(method: string, path: string, isCached?: boolean, body?: object | undefined): Promise<any>;
+export declare function requestPaged(method: string, path: string, limit?: number | undefined, isCached?: boolean, body?: object | undefined): AsyncGenerator<any, void, unknown>;
 export declare const Sessions: {
     ensureLoggedIn: () => Promise<unknown>;
     getUserId: () => any;
@@ -53,7 +56,7 @@ export declare const Groups: {
     Public: number;
     Private: number;
     getJoined: () => AsyncGenerator<any, void, unknown>;
-    getVisible: (type: GroupType) => AsyncGenerator<any, void, unknown>;
+    getVisible: (type: GroupType, ignoreInactive?: boolean) => AsyncGenerator<any, void, unknown>;
     getInvited: () => AsyncGenerator<any, void, unknown>;
     getRequested: () => AsyncGenerator<any, void, unknown>;
     createGroup: (name: string, description: string) => Promise<any>;
@@ -65,6 +68,7 @@ export declare const Groups: {
     }) => Promise<any>;
     editGroupRole: (groupId: string | number, roleId: string | number, newInfo: {
         name: string | undefined;
+        color: string | undefined;
         permissions: string[] | undefined;
     }) => Promise<any>;
     getMembers: (groupId: string | number) => AsyncGenerator<any, void, unknown>;

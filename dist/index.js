@@ -102,6 +102,7 @@ function requestNoLogin(method, path, isCached = false, body = undefined) {
     return request_promise_native_1.default({ url: currentEndpoint + path, method, headers, body: JSON.stringify(body), rejectUnauthorized })
         .then((response) => JSON.parse(response));
 }
+exports.requestNoLogin = requestNoLogin;
 function request(method, path, isCached = false, body = undefined) {
     logger.info(method + " " + path);
     if (isOffline) {
@@ -117,6 +118,7 @@ function request(method, path, isCached = false, body = undefined) {
         logger.info("Failed to parse response to " + path + " : " + response);
     } });
 }
+exports.request = request;
 function requestPaged(method, path, limit = undefined, isCached = false, body = undefined) {
     return __asyncGenerator(this, arguments, function* requestPaged_1() {
         logger.info(method + " " + path);
@@ -149,6 +151,7 @@ function requestPaged(method, path, limit = undefined, isCached = false, body = 
         }
     });
 }
+exports.requestPaged = requestPaged;
 function requestRefresh(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
@@ -367,9 +370,9 @@ exports.Groups = {
         logger.info("Get joined groups");
         return requestPaged('GET', 'groups/joined');
     },
-    getVisible: (type) => {
+    getVisible: (type, ignoreInactive = false) => {
         logger.info("Get visible groups");
-        return requestPaged('GET', `groups?type=${type}`);
+        return requestPaged('GET', `groups?type=${type}${ignoreInactive == undefined ? '' : '&ignoreInactive=' + ignoreInactive}`);
     },
     getInvited: () => {
         logger.info("Get invited to groups");
@@ -400,8 +403,8 @@ exports.Groups = {
         return request('PATCH', `groups/${groupId}`, false, groupInfo);
     },
     editGroupRole: (groupId, roleId, newInfo) => {
-        logger.info(`Put group role ${groupId} ${roleId}`);
-        return request('PUT', `groups/${groupId}/roles/${roleId}`, false, newInfo);
+        logger.info(`Patch group role ${groupId} ${roleId}`);
+        return request('PATCH', `groups/${groupId}/roles/${roleId}`, false, newInfo);
     },
     getMembers: (groupId) => {
         logger.info(`Get members ${groupId}`);

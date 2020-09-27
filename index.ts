@@ -121,7 +121,7 @@ export function setUserAgent(userAgent:string)
     headers['User-Agent'] = userAgent;
 }
 
-function requestNoLogin(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
+export function requestNoLogin(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
 {
     logger.info("NO LOGIN: " + method + " " + path);
 
@@ -134,7 +134,7 @@ function requestNoLogin(method: string, path: string, isCached: boolean = false,
     .then((response:string) => JSON.parse(response));
 }
 
-function request(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
+export function request(method: string, path: string, isCached: boolean = false, body: object | undefined = undefined)
 {
     logger.info(method + " " + path);
 
@@ -149,7 +149,7 @@ function request(method: string, path: string, isCached: boolean = false, body: 
     .then((response:string) => { try { return JSON.parse(response); } catch (error) { logger.info("Failed to parse response to " + path + " : " + response); } });
 }
 
-async function * requestPaged(method: string, path: string, limit:number|undefined = undefined, isCached: boolean = false, body: object | undefined = undefined)
+export async function * requestPaged(method: string, path: string, limit:number|undefined = undefined, isCached: boolean = false, body: object | undefined = undefined)
 {
     logger.info(method + " " + path);
 
@@ -533,11 +533,11 @@ export const Groups =
         return requestPaged('GET', 'groups/joined');
     },
     
-    getVisible : (type:GroupType) =>
+    getVisible : (type:GroupType, ignoreInactive:boolean = false) =>
     {
         logger.info("Get visible groups");
 
-        return requestPaged('GET', `groups?type=${type}`);
+        return requestPaged('GET', `groups?type=${type}${ignoreInactive==undefined ? '' : '&ignoreInactive=' + ignoreInactive}`);
     },
     
     getInvited : () =>
@@ -584,11 +584,11 @@ export const Groups =
         return request('PATCH', `groups/${groupId}`, false, groupInfo);
     },
 
-    editGroupRole : (groupId:number|string, roleId:number|string, newInfo:{name:string|undefined, permissions:string[]|undefined}) =>
+    editGroupRole : (groupId:number|string, roleId:number|string, newInfo:{name:string|undefined, color:string|undefined, permissions:string[]|undefined}) =>
     {
-        logger.info(`Put group role ${groupId} ${roleId}`);
+        logger.info(`Patch group role ${groupId} ${roleId}`);
 
-        return request('PUT', `groups/${groupId}/roles/${roleId}`, false, newInfo);
+        return request('PATCH', `groups/${groupId}/roles/${roleId}`, false, newInfo);
     },
     
     getMembers : (groupId:number|string) =>
