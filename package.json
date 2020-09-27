@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "publish": "npm publish && git add --all && git commit --m 'published' && git push"
+    "publish": "npm version patch && git add --all && git commit --m 'published' && git push"
   },
   "repository": {
     "type": "git",
