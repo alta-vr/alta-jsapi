@@ -334,7 +334,8 @@ export const Sessions = {
             refresh_token: cookies.get("refresh_token"),
             access_token: cookies.get("access_token"),
             identity_token: cookies.get("identity_token"),
-        });
+        },
+        false);
     },
 
     getLocalTokens: () =>
@@ -346,7 +347,7 @@ export const Sessions = {
         };
     },
 
-    setLocalTokens: (tokens: Tokens) =>
+    setLocalTokens: (tokens: Tokens, isRemembered: boolean) =>
     {
         logger.info("Setting local tokens");
 
@@ -366,6 +367,11 @@ export const Sessions = {
             refreshString = tokens.refresh_token;
 
             refreshToken = jwt.decode(refreshString);
+            
+            if (isRemembered)
+            {
+                cookies && cookies.set("refresh_token", refreshString, { path: '/' });
+            }
         }
 
         if (!!tokens.identity_token && identityString != tokens.identity_token)
@@ -450,7 +456,8 @@ export const Sessions = {
             refresh_token: jwt.sign(refresh, "offline"),
             access_token: jwt.sign(access, "offline"),
             identity_token: jwt.sign(identity, "offline"),
-        });
+        },
+        false);
 
         return Promise.resolve();
     },
@@ -460,7 +467,7 @@ export const Sessions = {
         return sha512(password).toString();
     },
 
-    loginWithUsername: (username: string, passwordHash: string) =>
+    loginWithUsername: (username: string, passwordHash: string, isRemembered: boolean) =>
     {
         logger.info("Login " + username);
 
@@ -473,7 +480,7 @@ export const Sessions = {
             username,
             password_hash: passwordHash,
         })
-            .then((result: Tokens) => Sessions.setLocalTokens(result))
+            .then((result: Tokens) => Sessions.setLocalTokens(result, isRemembered))
             .catch((error) =>
             {
                 logger.info("Error logging in");
@@ -483,7 +490,7 @@ export const Sessions = {
             });
     },
 
-    loginWithEmail: (email: string, passwordHash: string) =>
+    loginWithEmail: (email: string, passwordHash: string, isRemembered: boolean) =>
     {
         logger.info("Login with email");
 
@@ -496,7 +503,7 @@ export const Sessions = {
             email,
             password_hash: passwordHash,
         })
-            .then((result: Tokens) => Sessions.setLocalTokens(result))
+            .then((result: Tokens) => Sessions.setLocalTokens(result, isRemembered))
             .catch((error) =>
             {
                 logger.info("Error logging in");
@@ -597,7 +604,7 @@ export const Sessions = {
         logger.info("Refreshing session");
 
         return requestRefresh("PUT", "sessions", false, {}).then((result: Tokens) =>
-            Sessions.setLocalTokens(result)
+            Sessions.setLocalTokens(result, false)
         );
     },
 };
