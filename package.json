@@ -1,6 +1,6 @@
 {
   "name": "alta-jsapi",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The API for interacting with Alta databases",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
