@@ -248,7 +248,7 @@ export async function* requestPaged(
     }
 }
 
-function requestRefresh(
+async function requestRefresh(
     method: string,
     path: string,
     isCached: boolean = false,
@@ -267,13 +267,15 @@ function requestRefresh(
     
     headers = { ...headers, Authorization: "Bearer " + refreshString };
 
-    return rp({
+    var response = await  rp({
         url: currentEndpoint + path,
         method,
         headers,
         body: JSON.stringify(body),
         rejectUnauthorized,
-    }).then((response: string) => JSON.parse(response));
+    });
+    
+    return JSON.parse(response);
 }
 
 function updateTokens()
@@ -287,9 +289,8 @@ function updateTokens()
     if (!accessToken || accessToken.exp - new Date().getTime() / 1000 < 15)
     {
         logger.info("Requiring refresh");
-        refreshPromise = Sessions.refreshSession().then(
-            () => (refreshPromise = undefined)
-        );
+        refreshPromise = Sessions.refreshSession()
+        .then(() => (refreshPromise = undefined))
 
         return refreshPromise;
     } else
@@ -334,8 +335,7 @@ export const Sessions = {
             refresh_token: cookies.get("refresh_token"),
             access_token: cookies.get("access_token"),
             identity_token: cookies.get("identity_token"),
-        },
-        false);
+        });
     },
 
     getLocalTokens: () =>
@@ -347,7 +347,7 @@ export const Sessions = {
         };
     },
 
-    setLocalTokens: (tokens: Tokens, isRemembered: boolean) =>
+    setLocalTokens: (tokens: Tokens) =>
     {
         logger.info("Setting local tokens");
 
@@ -367,11 +367,6 @@ export const Sessions = {
             refreshString = tokens.refresh_token;
 
             refreshToken = jwt.decode(refreshString);
-            
-            if (isRemembered)
-            {
-                cookies && cookies.set("refresh_token", refreshString, { path: '/' });
-            }
         }
 
         if (!!tokens.identity_token && identityString != tokens.identity_token)
@@ -456,8 +451,7 @@ export const Sessions = {
             refresh_token: jwt.sign(refresh, "offline"),
             access_token: jwt.sign(access, "offline"),
             identity_token: jwt.sign(identity, "offline"),
-        },
-        false);
+        });
 
         return Promise.resolve();
     },
@@ -467,7 +461,7 @@ export const Sessions = {
         return sha512(password).toString();
     },
 
-    loginWithUsername: (username: string, passwordHash: string, isRemembered: boolean) =>
+    loginWithUsername: (username: string, passwordHash: string) =>
     {
         logger.info("Login " + username);
 
@@ -480,7 +474,7 @@ export const Sessions = {
             username,
             password_hash: passwordHash,
         })
-            .then((result: Tokens) => Sessions.setLocalTokens(result, isRemembered))
+            .then((result: Tokens) => Sessions.setLocalTokens(result))
             .catch((error) =>
             {
                 logger.info("Error logging in");
@@ -490,7 +484,7 @@ export const Sessions = {
             });
     },
 
-    loginWithEmail: (email: string, passwordHash: string, isRemembered: boolean) =>
+    loginWithEmail: (email: string, passwordHash: string) =>
     {
         logger.info("Login with email");
 
@@ -503,7 +497,7 @@ export const Sessions = {
             email,
             password_hash: passwordHash,
         })
-            .then((result: Tokens) => Sessions.setLocalTokens(result, isRemembered))
+            .then((result: Tokens) => Sessions.setLocalTokens(result))
             .catch((error) =>
             {
                 logger.info("Error logging in");
@@ -603,9 +597,11 @@ export const Sessions = {
     {
         logger.info("Refreshing session");
 
-        return requestRefresh("PUT", "sessions", false, {}).then((result: Tokens) =>
-            Sessions.setLocalTokens(result, false)
-        );
+        return requestRefresh("PUT", "sessions", false, {})
+        .then((result: Tokens) =>
+            Sessions.setLocalTokens(result)
+        )
+        .catch(e => { Sessions.logout(); throw e; });
     },
 };
 
