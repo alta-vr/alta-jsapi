@@ -260,10 +260,12 @@ function requestRefresh(
         throw new Error("Unsupported in offline mode: " + path);
     }
 
-    if (!!refreshString)
+    if (!refreshString)
     {
-        headers = { ...headers, Authorization: "Bearer " + refreshString };
+        throw new Error("No refresh string available");
     }
+    
+    headers = { ...headers, Authorization: "Bearer " + refreshString };
 
     return rp({
         url: currentEndpoint + path,
