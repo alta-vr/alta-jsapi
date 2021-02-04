@@ -302,7 +302,7 @@ function updateTokens()
 
 export const Sessions = {
     ensureLoggedIn: () =>
-        new Promise((resolve, reject) =>
+        new Promise<void>((resolve, reject) =>
         {
             if (!accessToken && !refreshString)
             {

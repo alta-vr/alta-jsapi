@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }
 var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
@@ -15,6 +24,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Shop = exports.UserReports = exports.UserReportType = exports.UserReportStatus = exports.Services = exports.Servers = exports.Meta = exports.Users = exports.Friends = exports.Analytics = exports.Security = exports.Groups = exports.GroupType = exports.Launcher = exports.Bans = exports.BanMethod = exports.BanType = exports.Sessions = exports.requestPaged = exports.request = exports.requestNoLogin = exports.setUserAgent = exports.setVersion = exports.getRejectUnauthorized = exports.setEndpoint = void 0;
 const request_promise_native_1 = __importDefault(require("request-promise-native"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -47,11 +57,13 @@ let currentEndpoint = getEndpoint(PROD);
 let rejectUnauthorized = true;
 let loggingLevel = 0;
 var refreshPromise;
-exports.setEndpoint = (endpoint) => {
+const setEndpoint = (endpoint) => {
     console.log("SETTING ENDPOINT TO " + endpoint);
     currentEndpoint = getEndpoint(endpoint);
 };
-exports.getRejectUnauthorized = () => rejectUnauthorized;
+exports.setEndpoint = setEndpoint;
+const getRejectUnauthorized = () => rejectUnauthorized;
+exports.getRejectUnauthorized = getRejectUnauthorized;
 const hasFs = !!fs_1.default.existsSync;
 if (process.env.APPDATA != undefined) {
     var settingsFile = path_1.default.join(process.env.APPDATA, "Alta Launcher", "Settings.json");
@@ -175,19 +187,23 @@ function requestPaged(method, path, limit = undefined, isCached = false, body = 
 }
 exports.requestPaged = requestPaged;
 function requestRefresh(method, path, isCached = false, body = undefined) {
-    if (isOffline) {
-        throw new Error("Unsupported in offline mode: " + path);
-    }
-    if (!!refreshString) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (isOffline) {
+            throw new Error("Unsupported in offline mode: " + path);
+        }
+        if (!refreshString) {
+            throw new Error("No refresh string available");
+        }
         headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
-    }
-    return request_promise_native_1.default({
-        url: currentEndpoint + path,
-        method,
-        headers,
-        body: JSON.stringify(body),
-        rejectUnauthorized,
-    }).then((response) => JSON.parse(response));
+        var response = yield request_promise_native_1.default({
+            url: currentEndpoint + path,
+            method,
+            headers,
+            body: JSON.stringify(body),
+            rejectUnauthorized,
+        });
+        return JSON.parse(response);
+    });
 }
 function updateTokens() {
     if (!!refreshPromise) {
@@ -196,7 +212,8 @@ function updateTokens() {
     }
     if (!accessToken || accessToken.exp - new Date().getTime() / 1000 < 15) {
         logger.info("Requiring refresh");
-        refreshPromise = exports.Sessions.refreshSession().then(() => (refreshPromise = undefined));
+        refreshPromise = exports.Sessions.refreshSession()
+            .then(() => (refreshPromise = undefined));
         return refreshPromise;
     }
     else {
@@ -411,7 +428,9 @@ exports.Sessions = {
     },
     refreshSession: () => {
         logger.info("Refreshing session");
-        return requestRefresh("PUT", "sessions", false, {}).then((result) => exports.Sessions.setLocalTokens(result));
+        return requestRefresh("PUT", "sessions", false, {})
+            .then((result) => exports.Sessions.setLocalTokens(result))
+            .catch(e => { exports.Sessions.logout(); throw e; });
     },
 };
 var BanType;

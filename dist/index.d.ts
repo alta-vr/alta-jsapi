@@ -12,7 +12,7 @@ export declare function requestNoLogin(method: string, path: string, isCached?: 
 export declare function request(method: string, path: string, isCached?: boolean, body?: object | undefined): Promise<any>;
 export declare function requestPaged(method: string, path: string, limit?: number | undefined, isCached?: boolean, body?: object | undefined): AsyncGenerator<any, void, unknown>;
 export declare const Sessions: {
-    ensureLoggedIn: () => Promise<unknown>;
+    ensureLoggedIn: () => Promise<void>;
     getUserId: () => any;
     getVerified: () => any;
     getUsername: () => any;
@@ -78,37 +78,37 @@ export declare const Groups: {
     getInvited: () => AsyncGenerator<any, void, unknown>;
     getRequested: () => AsyncGenerator<any, void, unknown>;
     createGroup: (name: string, description: string) => Promise<any>;
-    getGroupInfo: (groupId: string | number) => Promise<any>;
-    editGroupInfo: (groupId: string | number, groupInfo: {
+    getGroupInfo: (groupId: number | string) => Promise<any>;
+    editGroupInfo: (groupId: number | string, groupInfo: {
         name: string | undefined;
         description: string | undefined;
         groupType: GroupType | undefined;
     }) => Promise<any>;
-    editGroupRole: (groupId: string | number, roleId: string | number, newInfo: {
+    editGroupRole: (groupId: number | string, roleId: number | string, newInfo: {
         name: string | undefined;
         color: string | undefined;
         permissions: string[] | undefined;
     }) => Promise<any>;
-    getMembers: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    getBans: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    banUser: (groupId: string | number, userId: string | number) => Promise<any>;
-    unbanUser: (groupId: string | number, userId: string | number) => Promise<any>;
-    getMemberInfo: (groupId: string | number, userId: string | number) => Promise<any>;
-    getJoinRequests: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    getOutgoingInvites: (groupId: string | number) => AsyncGenerator<any, void, unknown>;
-    requestJoin: (groupId: string | number) => Promise<any>;
-    revokeRequest: (groupId: string | number) => Promise<any>;
-    acceptInvite: (groupId: string | number) => Promise<any>;
-    rejectInvite: (groupId: string | number) => Promise<any>;
-    leave: (groupId: string | number) => Promise<any>;
-    inviteMember: (groupId: string | number, userId: string | number) => Promise<any>;
-    revokeInvite: (groupId: string | number, userId: string | number) => Promise<any>;
-    acceptRequest: (groupId: string | number, userId: string | number) => Promise<any>;
-    rejectRequest: (groupId: string | number, userId: string | number) => Promise<any>;
-    kickMember: (groupId: string | number, userId: string | number) => Promise<any>;
-    editPermissions: (groupId: string | number, userId: string | number, permissions: number) => Promise<any>;
-    setMemberRole: (groupId: string | number, userId: string | number, roleId: string | number) => Promise<any>;
-    createServer: (groupId: string | number, name: string, description: string, region: string) => Promise<any>;
+    getMembers: (groupId: number | string) => AsyncGenerator<any, void, unknown>;
+    getBans: (groupId: number | string) => AsyncGenerator<any, void, unknown>;
+    banUser: (groupId: number | string, userId: number | string) => Promise<any>;
+    unbanUser: (groupId: number | string, userId: number | string) => Promise<any>;
+    getMemberInfo: (groupId: number | string, userId: number | string) => Promise<any>;
+    getJoinRequests: (groupId: number | string) => AsyncGenerator<any, void, unknown>;
+    getOutgoingInvites: (groupId: number | string) => AsyncGenerator<any, void, unknown>;
+    requestJoin: (groupId: number | string) => Promise<any>;
+    revokeRequest: (groupId: number | string) => Promise<any>;
+    acceptInvite: (groupId: number | string) => Promise<any>;
+    rejectInvite: (groupId: number | string) => Promise<any>;
+    leave: (groupId: number | string) => Promise<any>;
+    inviteMember: (groupId: number | string, userId: number | string) => Promise<any>;
+    revokeInvite: (groupId: number | string, userId: number | string) => Promise<any>;
+    acceptRequest: (groupId: number | string, userId: number | string) => Promise<any>;
+    rejectRequest: (groupId: number | string, userId: number | string) => Promise<any>;
+    kickMember: (groupId: number | string, userId: number | string) => Promise<any>;
+    editPermissions: (groupId: number | string, userId: number | string, permissions: number) => Promise<any>;
+    setMemberRole: (groupId: number | string, userId: number | string, roleId: number | string) => Promise<any>;
+    createServer: (groupId: number | string, name: string, description: string, region: string) => Promise<any>;
 };
 export declare const Security: {
     sso: () => Promise<any>;
@@ -117,15 +117,15 @@ export declare const Analytics: {
     sendInstallation: (type: string, version_from: string | undefined, version_to: string, error: string | undefined, start_id: number | undefined) => Promise<any>;
 };
 export declare const Friends: {
-    getUserFriends: (userId: string | number) => AsyncGenerator<any, void, unknown>;
+    getUserFriends: (userId: number | string) => AsyncGenerator<any, void, unknown>;
     getFriends: () => AsyncGenerator<any, void, unknown>;
     getOutgoingRequests: () => AsyncGenerator<any, void, unknown>;
     getFriendRequests: () => AsyncGenerator<any, void, unknown>;
-    acceptFriendRequest: (userId: string | number) => Promise<any>;
-    addFriend: (userId: string | number) => Promise<any>;
-    revokeFriendRequest: (userId: string | number) => Promise<any>;
-    rejectFriendRequest: (userId: string | number) => Promise<any>;
-    removeFriend: (userId: string | number) => Promise<any>;
+    acceptFriendRequest: (userId: number | string) => Promise<any>;
+    addFriend: (userId: number | string) => Promise<any>;
+    revokeFriendRequest: (userId: number | string) => Promise<any>;
+    rejectFriendRequest: (userId: number | string) => Promise<any>;
+    removeFriend: (userId: number | string) => Promise<any>;
 };
 export declare const Users: {
     getInfo: ((userId: number) => Promise<any>) & memoizee.Memoized<(userId: number) => Promise<any>>;
@@ -145,16 +145,16 @@ export declare const Servers: {
     getRegions: () => Promise<any>;
     getConsoleServers: () => Promise<any>;
     getFavorites: () => Promise<any>;
-    addFavorite: (serverId: string | number) => Promise<any>;
-    removeFavorite: (serverId: string | number) => Promise<any>;
+    addFavorite: (serverId: number | string) => Promise<any>;
+    removeFavorite: (serverId: number | string) => Promise<any>;
     getRunning: () => Promise<any>;
     getOnline: () => Promise<any>;
     getPublic: () => Promise<any>;
     getJoined: () => Promise<any>;
     getOpen: () => Promise<any>;
-    getDetails: (serverId: string | number) => Promise<any>;
+    getDetails: (serverId: number | string) => Promise<any>;
     getControllable: () => Promise<any>;
-    joinConsole: (id: string | number, should_launch?: boolean, ignore_offline?: boolean) => Promise<any>;
+    joinConsole: (id: number | string, should_launch?: boolean, ignore_offline?: boolean) => Promise<any>;
 };
 export declare const Services: {
     resetPassword: (email: string) => Promise<any>;
