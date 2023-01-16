@@ -12,8 +12,6 @@ import customLogger from "./logger";
 
 var appdata = path.join(process.env.APPDATA || "./", "Alta Launcher");
 
-const publicBaseUrl = (name: String) =>
-    `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
 const localEndpoint = "http://localhost:13490/api/";
 
 function getEndpoint(name: String)
@@ -21,10 +19,12 @@ function getEndpoint(name: String)
     switch (name)
     {
         case "dev":
-        case "prod":
         case "test":
         case "latest":
-            return publicBaseUrl(name);
+            return "https://webapidev.townshiptale.com"
+
+        case "prod":
+            return "https://webapi.townshiptale.com"
 
         case "local":
             return localEndpoint;
@@ -264,7 +264,7 @@ async function requestRefresh(
     {
         throw new Error("No refresh string available");
     }
-    
+
     headers = { ...headers, Authorization: "Bearer " + refreshString };
 
     var response = await  rp({
@@ -274,7 +274,7 @@ async function requestRefresh(
         body: JSON.stringify(body),
         rejectUnauthorized,
     });
-    
+
     return JSON.parse(response);
 }
 
