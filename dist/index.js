@@ -33,15 +33,15 @@ const memoizee_1 = __importDefault(require("memoizee"));
 const sha512_1 = __importDefault(require("crypto-js/sha512"));
 const logger_1 = __importDefault(require("./logger"));
 var appdata = path_1.default.join(process.env.APPDATA || "./", "Alta Launcher");
-const publicBaseUrl = (name) => `https://967phuchye.execute-api.ap-southeast-2.amazonaws.com/${name}/api/`;
 const localEndpoint = "http://localhost:13490/api/";
 function getEndpoint(name) {
     switch (name) {
         case "dev":
-        case "prod":
         case "test":
         case "latest":
-            return publicBaseUrl(name);
+            return "https://webapidev.townshiptale.com";
+        case "prod":
+            return "https://webapi.townshiptale.com";
         case "local":
             return localEndpoint;
     }
@@ -73,7 +73,7 @@ if (process.env.APPDATA != undefined) {
         rejectUnauthorized = !!settings.rejectUnauthorized;
         loggingLevel = settings.jsapiLoggingLevel || 0;
         if (!!settings.apiEndpoint) {
-            exports.setEndpoint(settings.apiEndpoint);
+            (0, exports.setEndpoint)(settings.apiEndpoint);
         }
         console.log("rejectUnauthorized: " + rejectUnauthorized);
         console.log("jsapi logging level: " + loggingLevel);
@@ -83,7 +83,7 @@ else {
     console.info("Couldn't find APPDATA to check rejectUnauthorized");
 }
 console.log("jsapi endpoint: " + currentEndpoint);
-const logger = logger_1.default("WEBAPI", loggingLevel);
+const logger = (0, logger_1.default)("WEBAPI", loggingLevel);
 let isOffline = false;
 let accessToken;
 let refreshToken;
@@ -111,7 +111,7 @@ function requestNoLogin(method, path, isCached = false, body = undefined) {
     if (isOffline) {
         throw new Error("Unsupported in offline mode: " + path);
     }
-    return request_promise_native_1.default({
+    return (0, request_promise_native_1.default)({
         url: currentEndpoint + path,
         method,
         headers,
@@ -127,7 +127,7 @@ function request(method, path, isCached = false, body = undefined) {
     }
     return (updateTokens()
         //TODO: Remove the limit
-        .then(() => request_promise_native_1.default({
+        .then(() => (0, request_promise_native_1.default)({
         url: currentEndpoint + path,
         method,
         headers,
@@ -156,7 +156,7 @@ function requestPaged(method, path, limit = undefined, isCached = false, body = 
         while (true) {
             try {
                 var jsonBody = JSON.stringify(body);
-                var response = yield __await(request_promise_native_1.default({
+                var response = yield __await((0, request_promise_native_1.default)({
                     url: currentEndpoint + path,
                     method,
                     headers,
@@ -195,7 +195,7 @@ function requestRefresh(method, path, isCached = false, body = undefined) {
             throw new Error("No refresh string available");
         }
         headers = Object.assign(Object.assign({}, headers), { Authorization: "Bearer " + refreshString });
-        var response = yield request_promise_native_1.default({
+        var response = yield (0, request_promise_native_1.default)({
             url: currentEndpoint + path,
             method,
             headers,
@@ -340,7 +340,7 @@ exports.Sessions = {
         return Promise.resolve();
     },
     hashPassword: (password) => {
-        return sha512_1.default(password).toString();
+        return (0, sha512_1.default)(password).toString();
     },
     loginWithUsername: (username, passwordHash) => {
         logger.info("Login " + username);
@@ -692,7 +692,7 @@ exports.Friends = {
     },
 };
 exports.Users = {
-    getInfo: memoizee_1.default((userId) => {
+    getInfo: (0, memoizee_1.default)((userId) => {
         logger.info("Get user " + userId);
         return request("GET", `users/${userId}`);
     }),
@@ -760,7 +760,7 @@ exports.Meta = {
 //No applicable methods
 };
 exports.Servers = {
-    getAll: memoizee_1.default(() => {
+    getAll: (0, memoizee_1.default)(() => {
         logger.info("Getting all servers");
         return request("GET", `servers`);
     }),
@@ -1056,7 +1056,7 @@ exports.Shop = {
             //     }
             // ]
         },
-        getInfo: memoizee_1.default((itemId) => {
+        getInfo: (0, memoizee_1.default)((itemId) => {
             logger.info("Get item info");
             return request("GET", `shop/items/${itemId}`);
             // {
@@ -1098,7 +1098,7 @@ exports.Shop = {
         }),
     },
     Sets: {
-        getSet: memoizee_1.default((sku) => {
+        getSet: (0, memoizee_1.default)((sku) => {
             logger.info("Get set info");
             return request("GET", `shop/sets/${sku}`);
             // {
