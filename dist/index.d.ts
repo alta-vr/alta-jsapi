@@ -1,7 +1,7 @@
-import memoizee from "memoizee";
+import memoizee from 'memoizee';
 export declare const setEndpoint: (endpoint: string) => void;
 export declare const getRejectUnauthorized: () => boolean;
-declare type Tokens = {
+type Tokens = {
     refresh_token: string;
     access_token: string;
     identity_token: string;
@@ -174,7 +174,7 @@ export declare enum UserReportType {
     Warning = 4,
     Note = 5
 }
-export declare type UserReport = {
+export type UserReport = {
     topic_user: number;
     assignee: number;
     incident_date: Date;
