@@ -1,6 +1,6 @@
 {
   "name": "alta-jsapi",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "The API for interacting with Alta databases",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,6 +36,7 @@
     "@types/jsonwebtoken": "^8.3.3",
     "@types/memoizee": "^0.4.3",
     "@types/node": "^12.7.5",
-    "@types/request-promise-native": "^1.0.16"
+    "@types/request-promise-native": "^1.0.16",
+    "typescript": "^4.9.5"
   }
 }

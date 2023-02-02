@@ -17,10 +17,10 @@ function getEndpoint(name: String) {
     case 'dev':
     case 'test':
     case 'latest':
-      return 'https://webapidev.townshiptale.com/'
+      return 'https://webapidev.townshiptale.com/api/'
 
     case 'prod':
-      return 'https://webapi.townshiptale.com/'
+      return 'https://webapi.townshiptale.com/api/'
 
     case 'local':
       return 'http://localhost:13490/api/'
